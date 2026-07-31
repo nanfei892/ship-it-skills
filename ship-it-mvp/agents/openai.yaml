@@ -1,0 +1,4 @@
+interface:
+  display_name: "Ship It: MVP Blueprint"
+  short_description: "Turn a rough idea into a build-ready MVP plan."
+  default_prompt: "Use $ship-it-mvp to turn my idea into a build-ready MVP blueprint."

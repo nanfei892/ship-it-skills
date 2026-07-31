@@ -1,0 +1,32 @@
+{
+  "product_name": "DeskFocus",
+  "primary_user": "Remote workers who lose track of deep-work sessions",
+  "job": "start and finish one distraction-free work block",
+  "success_signal": "A user completes a timed focus session",
+  "assumptions": [
+    "The first release is a browser app."
+  ],
+  "now": [
+    "Create a named session",
+    "Run a timer",
+    "Show completion"
+  ],
+  "next": [
+    "Weekly history"
+  ],
+  "not_now": [
+    "Team workspaces"
+  ],
+  "flow": [
+    "Name a session",
+    "Start timer",
+    "See completion"
+  ],
+  "risks": [
+    {
+      "risk": "Users may not return",
+      "validation": "Test with five target users",
+      "decision": "Add history only if repeat use is observed"
+    }
+  ]
+}
