@@ -1,6 +1,6 @@
 ---
 name: ship-it-backend
-description: Turn product requirements, MVP plans, frontend flows, or rough backend requests into production-minded, verified server-side vertical slices in new or existing codebases. Use when Codex needs to add or complete an API endpoint, database-backed feature, service workflow, webhook or job, authorization rule, or backend integration including the contract, schema and migrations, business logic, validation, stable errors, integrity controls, focused tests, and a frontend-ready handoff. Preserve an existing repository's stack and patterns. Do not use for standalone deep security audits, performance tuning, infrastructure design, or cloud deployment.
+description: Turn product requirements, MVP plans, frontend flows, or rough backend requests into production-minded, verified server-side vertical slices in new or existing codebases. Use for adding or completing an API endpoint, database-backed feature, service workflow, webhook or job, authorization rule, or backend integration including the contract, schema and migrations, business logic, validation, stable errors, integrity controls, focused tests, and a frontend-ready handoff. Preserve an existing repository's stack and patterns. For a new project, let the user choose the database, cache, and relevant middleware before implementation. Do not use for standalone deep security audits, performance tuning, infrastructure design, or cloud deployment.
 ---
 
 # Ship It: Backend
@@ -11,11 +11,34 @@ Ship one backend capability end to end. Turn intent into running code and eviden
 
 - Treat product requirements, an MVP blueprint, UI flows, tickets, and existing code as inputs to one implementation.
 - Resolve ordinary ambiguity from repository conventions and the smallest coherent product behavior. State material assumptions in the handoff.
-- Ask only when an answer would change an irreversible data contract, a security boundary, an external system, or the fundamental product behavior.
+- Ask only for required greenfield stack choices or when an answer would change an irreversible data contract, a security boundary, an external system, or the fundamental product behavior.
 - Preserve the current language, framework, database, package manager, architecture, and local conventions unless the user explicitly requests a change.
-- When no backend exists, follow runtime and deployment constraints already implied by the product. Otherwise choose a mature, well-supported framework and persistence layer, start with one deployable service, and establish migrations and a test harness with the first slice.
+- When no backend exists, follow the greenfield selection workflow below instead of silently choosing infrastructure.
 - Keep the slice narrow. Do not introduce speculative abstractions, services, queues, caches, or dependencies.
 - Finish implementation and proportional verification in the same task. Do not stop after scaffolding, pseudocode, or a plan unless the user asks for one.
+
+## Let the user choose a greenfield stack
+
+When a project has no established backend, obtain the user's infrastructure choices before scaffolding or installing dependencies. Do not ask again for choices already stated in the request or fixed by the repository, hosting environment, or product constraints.
+
+Present one compact selection prompt. Recommend an option when context supports it, explain the recommendation in one sentence, and still let the user choose. Include these choices for every relevant category:
+
+| Category | Example options |
+| --- | --- |
+| Database | PostgreSQL, MySQL or MariaDB, SQLite, a document database such as MongoDB, none, or a custom choice |
+| Cache | Redis or Valkey, in-process cache, none, or a custom choice |
+| Background jobs or messaging | Database-backed jobs, RabbitMQ, Kafka, a managed queue, none, or a custom choice |
+| Feature-specific middleware | Object storage, search, email delivery, or another dependency only when the product requires it; none or a custom choice |
+
+If the language or framework is also undecided, include two to four compatible options in the same prompt plus a custom choice. Keep the decision understandable by describing product impact such as operational effort, local simplicity, scaling characteristics, or hosting compatibility rather than listing brand names without context.
+
+- Always offer **Custom** so the user can enter a component not listed.
+- Always offer **None** for optional middleware. Choosing none means do not install, configure, or scaffold that component.
+- Do not propose a queue, cache, search engine, or object store without a concrete requirement for it.
+- Flag incompatible combinations and offer compatible alternatives, but leave the final choice to the user.
+- Wait for confirmation before provisioning services, adding infrastructure dependencies, or creating framework-specific persistence code.
+- After confirmation, start with one deployable service and establish migrations and a test harness with the first slice.
+- Record the selected components and intentionally omitted middleware in the final handoff.
 
 ## Inspect before designing
 
