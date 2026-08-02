@@ -4,9 +4,9 @@
 
 A composable skill suite for AI coding agents (Claude Code, Codex, Reasonix, and others) that covers the full software delivery chain: **Product → Frontend → Backend → Security → Performance**.
 
-Each skill is a self-contained `SKILL.md` (YAML frontmatter + instructions) following the Agent Skills standard. Skills can be used individually or chained into a complete delivery pipeline — from a vague idea, to a product blueprint with acceptance criteria, to a frontend with a real product identity, to a production-grade backend, and finally to release.
+Each skill is a self-contained `SKILL.md` (YAML frontmatter + instructions) following the Agent Skills standard. Skills can be used individually or chained into a complete delivery pipeline — from a vague idea, to a product blueprint with acceptance criteria, to a frontend with a real product identity, to a production-grade backend, then through security hardening and performance verification until it is release-ready.
 
-![skills](https://img.shields.io/badge/skills-3-brightgreen)
+![skills](https://img.shields.io/badge/skills-5-brightgreen)
 ![Agent Skills](https://img.shields.io/badge/Agent%20Skills-Standard-blue)
 
 ## Why Ship-It?
@@ -18,7 +18,8 @@ Ship-It breaks development into stages that each have **acceptance criteria**, a
 1. First decide **what to build** (an MVP blueprint, not a feature list)
 2. Then make it **look like a product** (a frontend with identity, not AI-template flavor)
 3. Then implement **how it runs** (production-grade backend vertical slices, not disconnected layers)
-4. Finally cover **security and performance** (planned)
+4. Then complete **security hardening** (evidence-backed risk and verified fixes)
+5. Finally complete **performance verification** (measure first, optimize second, prevent regressions with budgets)
 
 Each stage's output is the next stage's input, with evidence at every step.
 
@@ -29,6 +30,8 @@ Each stage's output is the next stage's input, with evidence at every step.
 | [ship-it-mvp](#ship-it-mvp) | Turn a rough idea into a build-ready MVP blueprint | Have a product idea, need a PRD / scope / build plan | [SKILL.md](./ship-it-mvp/SKILL.md) |
 | [make-ui-not-ai](#make-ui-not-ai) | Build frontends with a real product identity, not an AI-template look | Build / redesign / review a UI, or the UI "looks AI-generated" | [SKILL.md](./make-ui-not-ai/SKILL.md) |
 | [ship-it-backend](#ship-it-backend) | Turn requirements into production-minded, verified backend vertical slices | Add APIs, database-backed features, webhooks, authorization rules, backend integrations | [SKILL.md](./ship-it-backend/SKILL.md) |
+| [ship-it-security](#ship-it-security) | Find and fix release-blocking risk with a threat-driven security workflow | Security reviews, access control, tenant isolation, sessions, secrets, dependencies, uploads, webhooks, release hardening | [SKILL.md](./ship-it-security/SKILL.md) |
+| [ship-it-performance](#ship-it-performance) | Locate bottlenecks from reproducible baselines and verify the gain | Slow pages or APIs, expensive queries, Core Web Vitals, throughput, memory, regressions, performance budgets | [SKILL.md](./ship-it-performance/SKILL.md) |
 
 ### ship-it-mvp — Product
 
@@ -49,17 +52,28 @@ Delivers one backend capability **end to end**: define the contract first (actor
 
 - Example trigger: "Implement the backend for this feature, including database and tests"
 
+### ship-it-security — Security
+
+Applies **threat-driven security hardening** to critical product paths: identify assets, actors, entry points, trust boundaries, and security invariants, then validate real risks by reachability and impact. Every material finding requires a concrete path, attacker prerequisites, redacted evidence, impact, a root-cause fix, and a regression test. It covers relevant identity, authorization, tenant isolation, injection, sessions, CSRF, XSS, privacy, upload, webhook, supply-chain, and configuration surfaces, ending with an explicit release gate rather than treating scanner volume as security quality.
+
+- Example trigger: "Review this project before release, fix high-risk security issues, and add tests"
+
+### ship-it-performance — Performance
+
+Completes **measurable performance optimization** around one important journey: define a representative workload, primary metric, and guardrails; establish a reproducible baseline; locate the dominant bottleneck with traces, profiles, query plans, or network waterfalls; change only the proven hot path; and compare before and after under equivalent conditions. It covers frontend rendering and bundles, networks, APIs, databases, caches, and runtimes while preserving correctness, security, accessibility, and data freshness, then protects the gain with a budget, benchmark, or monitoring recommendation.
+
+- Example trigger: "This page and API are slow; find the bottleneck, optimize it, and show me before-and-after data"
+
 ## Chaining the Skills
 
 ```mermaid
 flowchart LR
     A[💡 An idea] --> B[ship-it-mvp<br/>Product blueprint]
     B --> C[make-ui-not-ai<br/>Frontend]
-    B --> D[ship-it-backend<br/>Backend]
-    C --> E[🔒 Security<br/>planned]
-    D --> E
-    E --> F[⚡ Performance<br/>planned]
-    F --> G[🚀 Ship it]
+    C --> D[ship-it-backend<br/>Backend]
+    D --> E[ship-it-security<br/>Security]
+    E --> F[ship-it-performance<br/>Performance]
+    F --> G[🚀 Release-ready]
 ```
 
 Typical scenario — "I want to build a 'what should I eat tonight' app":
@@ -67,7 +81,8 @@ Typical scenario — "I want to build a 'what should I eat tonight' app":
 1. **ship-it-mvp**: produces the MVP blueprint, scoping the first release (recommend a restaurant, today's menu, a decision countdown) with acceptance criteria;
 2. **make-ui-not-ai**: builds a frontend with a real product identity from the blueprint (the [`skill-showcase/`](./skill-showcase/) directory in this repo is a demo app produced by these skills);
 3. **ship-it-backend**: implements the backend vertical slice — restaurant / menu APIs, database migrations, business rules and tests, plus an integration contract for the frontend;
-4. Then chain in the planned security and performance skills until release.
+4. **ship-it-security**: models threats around accounts, restaurant data, administrative actions, and API boundaries, fixes release blockers, and adds security regression tests;
+5. **ship-it-performance**: measures the first viewport, core interaction, API, and query performance, removes the dominant bottleneck, and establishes regression budgets until the product is release-ready.
 
 ## Installation
 
@@ -101,6 +116,8 @@ Skills trigger **semantically**: when your agent sees a request that matches a s
 ├── ship-it-mvp/          # Product: MVP blueprint (optional generator in scripts/)
 ├── make-ui-not-ai/       # Frontend: UI with product identity
 ├── ship-it-backend/      # Backend: production-grade vertical slices
+├── ship-it-security/     # Security: threat-driven hardening and release gates
+├── ship-it-performance/  # Performance: baselines, bottleneck fixes, regression budgets
 ├── skill-showcase/       # Demo app produced by these skills ("饭点" example)
 ├── README.md             # 中文说明 (Chinese)
 ├── README.en.md          # English version
@@ -109,9 +126,7 @@ Skills trigger **semantically**: when your agent sees a request that matches a s
 
 ## Roadmap
 
-- 🔒 **Security skill** (planned): lightweight security hardening and review along the delivery path — `ship-it-backend` explicitly does not perform standalone deep security audits, so this skill fills that gap;
-- ⚡ **Performance skill** (planned): API and frontend performance baselines, bottleneck identification and optimization;
-- 📦 **One-click plugin packaging** (planned): publish the whole suite as a plugin — install everything with one command, enable per project needs.
+- 📦 **One-click plugin packaging** (planned): publish the skills and pipeline orchestration as one plugin — install everything with one command, use stages independently, or run the full delivery chain.
 
 ## Disclaimer
 

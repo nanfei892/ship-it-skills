@@ -1,0 +1,4 @@
+interface:
+  display_name: "Ship It: Performance"
+  short_description: "Measure and remove user-visible bottlenecks"
+  default_prompt: "Use $ship-it-performance to establish a baseline, fix the highest-impact bottleneck, and verify the gain."

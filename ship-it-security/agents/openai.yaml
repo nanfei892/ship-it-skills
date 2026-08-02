@@ -1,0 +1,4 @@
+interface:
+  display_name: "Ship It: Security"
+  short_description: "Find and fix release-blocking security risks"
+  default_prompt: "Use $ship-it-security to threat-model, harden, and verify this product before release."
