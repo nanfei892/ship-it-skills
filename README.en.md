@@ -1,0 +1,130 @@
+[中文](./README.md) · **English**
+
+# 🚢 Ship-It Skills
+
+A composable skill suite for AI coding agents (Claude Code, Codex, Reasonix, and others) that covers the full software delivery chain: **Product → Frontend → Backend → Security → Performance**.
+
+Each skill is a self-contained `SKILL.md` (YAML frontmatter + instructions) following the Agent Skills standard. Skills can be used individually or chained into a complete delivery pipeline — from a vague idea, to a product blueprint with acceptance criteria, to a frontend with a real product identity, to a production-grade backend, and finally to release.
+
+![skills](https://img.shields.io/badge/skills-3-brightgreen)
+![Agent Skills](https://img.shields.io/badge/Agent%20Skills-Standard-blue)
+
+## Why Ship-It?
+
+Most agents jump straight into writing code when handed a request — the result is often "a big pile of working code" rather than "software that can ship."
+
+Ship-It breaks development into stages that each have **acceptance criteria**, a **definition of done**, and a **deliverable**, so the agent works like a small team:
+
+1. First decide **what to build** (an MVP blueprint, not a feature list)
+2. Then make it **look like a product** (a frontend with identity, not AI-template flavor)
+3. Then implement **how it runs** (production-grade backend vertical slices, not disconnected layers)
+4. Finally cover **security and performance** (planned)
+
+Each stage's output is the next stage's input, with evidence at every step.
+
+## Skill Overview
+
+| Skill | One-liner | When to use | Docs |
+| --- | --- | --- | --- |
+| [ship-it-mvp](#ship-it-mvp) | Turn a rough idea into a build-ready MVP blueprint | Have a product idea, need a PRD / scope / build plan | [SKILL.md](./ship-it-mvp/SKILL.md) |
+| [make-ui-not-ai](#make-ui-not-ai) | Build frontends with a real product identity, not an AI-template look | Build / redesign / review a UI, or the UI "looks AI-generated" | [SKILL.md](./make-ui-not-ai/SKILL.md) |
+| [ship-it-backend](#ship-it-backend) | Turn requirements into production-minded, verified backend vertical slices | Add APIs, database-backed features, webhooks, authorization rules, backend integrations | [SKILL.md](./ship-it-backend/SKILL.md) |
+
+### ship-it-mvp — Product
+
+Turns "build me an X" into a **decision-ready MVP blueprint**: a focused product brief, scope classification (Now / Next / Not now), the core user flow, item-by-item acceptance criteria, a technical shape, and a dependency-ordered implementation plan with the cheapest validation for the biggest risk. Optimize for a small first release that proves one valuable user outcome — not feature completeness.
+
+- Optional generator: `scripts/make_mvp_blueprint.py` — feed it a JSON brief and get a deterministic Markdown blueprint.
+- Example trigger: "Help me make an MVP for a 'what should I eat tonight' app"
+
+### make-ui-not-ai — Frontend
+
+Build, redesign, or review frontend interfaces so they **have a clear product identity** instead of coming from a generic AI template. Read the product before styling (design contract: product signal, information shape, visual premise, type / color / geometry, signature decision), implement the real interface, then run a deliberate second pass to remove template tells (stat strips, bento card walls, gratuitous gradients and glass, uniform spacing and animation…), verify at real viewports, and pass a 7-point finish gate (Specific / Useful / Complete / Coherent / Responsive / Accessible / Verified).
+
+- Example trigger: "Make this page feel like a real product, not an AI template"
+
+### ship-it-backend — Backend
+
+Delivers one backend capability **end to end**: define the contract first (actor, inputs, success, invariants, failures, state change), then walk the full vertical slice — schema and migrations, boundary validation, authentication and authorization, business rules, persistence, stable errors, integrity controls (transactions / idempotency / concurrency), focused tests. Preserve the repository's stack and conventions; no speculative abstractions. The definition of done is explicit: entry point wired, invariants enforced server-side, valid migration that preserves data, stable non-leaking failure responses, passing tests, and an **exact integration contract** handed to the frontend.
+
+- Example trigger: "Implement the backend for this feature, including database and tests"
+
+## Chaining the Skills
+
+```mermaid
+flowchart LR
+    A[💡 An idea] --> B[ship-it-mvp<br/>Product blueprint]
+    B --> C[make-ui-not-ai<br/>Frontend]
+    B --> D[ship-it-backend<br/>Backend]
+    C --> E[🔒 Security<br/>planned]
+    D --> E
+    E --> F[⚡ Performance<br/>planned]
+    F --> G[🚀 Ship it]
+```
+
+Typical scenario — "I want to build a 'what should I eat tonight' app":
+
+1. **ship-it-mvp**: produces the MVP blueprint, scoping the first release (recommend a restaurant, today's menu, a decision countdown) with acceptance criteria;
+2. **make-ui-not-ai**: builds a frontend with a real product identity from the blueprint (the [`skill-showcase/`](./skill-showcase/) directory in this repo is a demo app produced by these skills);
+3. **ship-it-backend**: implements the backend vertical slice — restaurant / menu APIs, database migrations, business rules and tests, plus an integration contract for the frontend;
+4. Then chain in the planned security and performance skills until release.
+
+## Installation
+
+### Option 1: Let your agent install it (recommended)
+
+Send this to your agent (swap the path for the skill you want):
+
+> Please install this skill: https://github.com/nanfei892/my-skill/tree/main/ship-it-mvp
+
+If your environment doesn't support automatic skill installation, download the corresponding `SKILL.md` into your agent's skills directory and use it as a rules file (same instructions, loaded manually).
+
+### Option 2: Manual clone
+
+```bash
+git clone git@github.com:nanfei892/my-skill.git
+```
+
+Then copy or symlink the skill directories you need into your agent's skills directory, e.g.:
+
+- Claude Code: `~/.claude/skills/`
+- Codex: `~/.codex/skills/`
+
+### How skills trigger
+
+Skills trigger **semantically**: when your agent sees a request that matches a skill's `SKILL.md` description, it loads that skill automatically — no special prefix needed. Most environments also support manual invocation (e.g. `/ship-it-mvp` in Reasonix).
+
+## Repository Layout
+
+```
+.
+├── ship-it-mvp/          # Product: MVP blueprint (optional generator in scripts/)
+├── make-ui-not-ai/       # Frontend: UI with product identity
+├── ship-it-backend/      # Backend: production-grade vertical slices
+├── skill-showcase/       # Demo app produced by these skills ("饭点" example)
+├── README.md             # 中文说明 (Chinese)
+├── README.en.md          # English version
+└── LICENSE               # MIT License
+```
+
+## Roadmap
+
+- 🔒 **Security skill** (planned): lightweight security hardening and review along the delivery path — `ship-it-backend` explicitly does not perform standalone deep security audits, so this skill fills that gap;
+- ⚡ **Performance skill** (planned): API and frontend performance baselines, bottleneck identification and optimization;
+- 📦 **One-click plugin packaging** (planned): publish the whole suite as a plugin — install everything with one command, enable per project needs.
+
+## Disclaimer
+
+The skills in this repository are provided for educational purposes and project acceleration. Actual behavior varies by agent version and runtime environment; always test thoroughly in your own environment before relying on them for production or payment-critical paths.
+
+## Contributing
+
+PRs welcome. Conventions:
+
+- Each skill is **self-contained** in its own directory and follows the `SKILL.md` frontmatter (`name` + `description`) spec;
+- Keep the collaboration model between skills unchanged (one skill's output is the next skill's input);
+- When adding a skill, update the skill overview table and the Roadmap in this README.
+
+## License
+
+[MIT](./LICENSE)
