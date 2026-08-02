@@ -1,0 +1,4 @@
+interface:
+  display_name: "Ship It: Backend"
+  short_description: "Turn product requirements into verified backend features"
+  default_prompt: "Use $ship-it-backend to implement this server-side feature as a verified vertical slice."
