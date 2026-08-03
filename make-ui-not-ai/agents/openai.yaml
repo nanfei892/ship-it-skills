@@ -1,4 +1,4 @@
 interface:
   display_name: "Make UI, Not AI"
-  short_description: "Build product-specific interfaces without the AI-template look"
-  default_prompt: "Use $make-ui-not-ai to redesign this interface so it feels product-specific, complete, and ready to ship."
+  short_description: "Design, render, critique, and refine product-specific UI"
+  default_prompt: "Use $make-ui-not-ai to set an evidence-backed visual direction, render an early checkpoint, and refine this interface through screenshot-based critique."
