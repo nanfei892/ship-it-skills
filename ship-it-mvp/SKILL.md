@@ -111,3 +111,9 @@ Use this input shape. `now`, `next`, and `not_now` may be empty arrays.
   "risks": [{"risk": "Users may not return", "validation": "Test with five target users", "decision": "Add history only if repeat use is observed"}]
 }
 ```
+
+## Related Skills
+
+Pipeline: **ship-it-mvp** (scope the product) → **make-ui-not-ai** (set the visual direction and build the real interface) → **ship-it-backend** → **ship-it-security** → **ship-it-performance**.
+
+Frontend stage: [make-ui-not-ai](https://github.com/nanfei892/ship-it-skills/tree/master/make-ui-not-ai).

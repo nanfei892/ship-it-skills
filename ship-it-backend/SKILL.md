@@ -144,3 +144,9 @@ Lead with what now works. Then report only information needed to review or integ
 5. **Assumptions or gaps:** only material decisions, blocked checks, and follow-up risks.
 
 Reference the changed files. Do not bury the outcome under a file-by-file activity log.
+
+## Related Skills
+
+Pipeline: **ship-it-mvp** → **make-ui-not-ai** (set the visual direction and build the real interface) → **ship-it-backend** (this skill) → **ship-it-security** → **ship-it-performance**.
+
+Frontend stage: [make-ui-not-ai](https://github.com/nanfei892/ship-it-skills/tree/master/make-ui-not-ai).

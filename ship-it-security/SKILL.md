@@ -131,3 +131,9 @@ Lead with the release decision, then report:
 6. **Performance constraints:** controls the next optimization stage must preserve.
 
 Reference the affected files and keep proof redacted. Do not bury release blockers under informational hardening notes.
+
+## Related Skills
+
+Pipeline: **ship-it-mvp** → **make-ui-not-ai** (set the visual direction and build the real interface) → **ship-it-backend** → **ship-it-security** (this skill) → **ship-it-performance**.
+
+Frontend stage: [make-ui-not-ai](https://github.com/nanfei892/ship-it-skills/tree/master/make-ui-not-ai).

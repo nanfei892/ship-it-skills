@@ -134,3 +134,9 @@ Lead with the user-visible or operational improvement, then report:
 6. **Remaining limits:** the next bottleneck, unverified production assumptions, and safe follow-up.
 
 Reference the changed files. Do not bury the comparison under a file-by-file implementation log or claim improvement from code inspection alone.
+
+## Related Skills
+
+Pipeline: **ship-it-mvp** → **make-ui-not-ai** (set the visual direction and build the real interface) → **ship-it-backend** → **ship-it-security** → **ship-it-performance** (this skill).
+
+Frontend stage: [make-ui-not-ai](https://github.com/nanfei892/ship-it-skills/tree/master/make-ui-not-ai).
