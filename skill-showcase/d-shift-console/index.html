@@ -1,0 +1,1138 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<title>排班台 · 云檐小馆 望京店</title>
+<!--
+  Direction — 排班台, shift console for 云檐小馆 · 望京店
+  Evidence: the manager's real artifact is the day schedule taped to the pass — staff down
+  the left, one shared time axis across the top, coverage read horizontally. The repeated
+  loop is scan today -> spot the thin hours -> open one shift -> publish / swap / cancel.
+  Premise: an instrument, not a dashboard. One axis (08:00-24:00) is the spine: every row's
+  time bar, the coverage strip and the detail's day map sit on that same axis, so "who is on
+  at 15:00" is answered by vertical alignment instead of by reading two timestamps.
+  Dials: density tight (4px base), contrast medium-high, geometry crisp (2-6px radii, rails
+  and rules instead of cards), motion quiet (one 300ms drill-in; no row entrance animation).
+  Composition: the shift list owns the centre and the width. Filters are a quiet left rail on
+  desktop and a sheet on a phone; detail is a 320px panel on desktop and a full-surface
+  drill-in on a phone. The coverage strip is the single loud element.
+  Colour: stainless neutral page, white work surfaces, one jade accent (primary action,
+  selection, 换班中), amber for 待发布 / 偏紧, brick for 取消 / 缺口. Every status is written as
+  text; colour only reinforces, never carries meaning alone.
+  Type: one CJK sans family. Hierarchy from weight and size only; tabular numerals on every
+  time and count.
+  Rejected: the SaaS card kit — one rounded white card per shift, soft grey shadow, pill
+  status chips. It hides the time axis, which is the one thing a schedule exists to show.
+  Rejected: squeezing the desktop three-pane into 390px. On a phone the list owns the
+  viewport and detail is a drill-in with a visible return path.
+-->
+<style>
+/* ---------- tokens ---------- */
+:root{
+  --bg:#edefee;            /* 不锈钢灰 */
+  --surface:#fff;
+  --surface-2:#f5f7f6;
+  --line:#dde2e0;
+  --line-2:#c3cac7;
+  --ink:#1c1f1e;
+  --ink-2:#4a5250;
+  --ink-3:#5f6866;
+  --jade:#1f6f5c;
+  --jade-ink:#155445;
+  --jade-tint:#e4efeb;
+  --amber:#8a5a12;
+  --amber-tint:#f6eedd;
+  --danger:#a63023;
+  --danger-ink:#8d2719;
+  --danger-tint:#f7e7e4;
+
+  --r:6px;                 /* surfaces, buttons */
+  --r-sm:4px;              /* small marks */
+  --r-bar:2px;             /* rails and bars */
+  --ease:cubic-bezier(.2,0,0,1);
+
+  --fs-tick:12px;
+  --fs-meta:13px;
+  --fs-time:14px;
+  --fs-body:15px;
+  --fs-stop:1.6;
+
+  --shadow-panel:
+    0 0 0 1px oklch(0 0 0 / .06),
+    0 1px 2px -1px oklch(0 0 0 / .06),
+    0 2px 4px 0 oklch(0 0 0 / .04);
+
+  /* the row template that the axis, the coverage strip and every shift row share */
+  --row-cols:minmax(130px,1.2fr) 116px minmax(160px,1.8fr) 96px;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+
+html{
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:"PingFang SC","HarmonyOS Sans SC","Microsoft YaHei","Noto Sans SC","Source Han Sans SC",sans-serif;
+  font-size:var(--fs-body);
+  line-height:var(--fs-stop);
+}
+h1,h2,p,ul,ol,li,figure,figcaption,dl,dd,dt{margin:0;padding:0}
+ul,ol{list-style:none}
+h1,h2{line-height:1.3;text-wrap:balance}
+p{text-wrap:pretty}
+button{font:inherit;color:inherit}
+[hidden]{display:none !important}
+:focus-visible{outline:2px solid var(--jade);outline-offset:2px;border-radius:2px}
+.sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+
+/* ---------- topbar ---------- */
+.topbar{
+  display:flex;align-items:center;gap:16px;
+  padding:12px 16px;
+  background:var(--surface);
+  border-bottom:1px solid var(--line);
+  position:sticky;top:0;z-index:10;
+}
+.brand{display:flex;align-items:baseline;gap:10px;min-width:0}
+.brand h1{font-size:20px;font-weight:600;letter-spacing:.01em}
+.brand .store{font-size:var(--fs-meta);color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.crumb{display:flex;align-items:baseline;gap:8px}
+.crumb .dot{width:3px;height:3px;border-radius:50%;background:var(--line-2);flex:none;transform:translateY(-3px)}
+.topbar .spacer{flex:1}
+.btn-filter{
+  display:inline-flex;align-items:center;gap:6px;
+  min-height:36px;padding:0 12px;
+  background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r);
+  cursor:pointer;
+  transition-property:background-color,border-color;
+  transition-duration:150ms;transition-timing-function:ease-out;
+}
+.btn-filter:hover{background:var(--surface-2)}
+.btn-filter .ico{width:16px;height:16px;flex:none}
+.btn-filter .tally{
+  min-width:18px;padding:0 4px;border-radius:3px;
+  background:var(--jade);color:#fff;font-size:12px;line-height:18px;text-align:center;
+  font-variant-numeric:tabular-nums;
+}
+
+/* ---------- shell ---------- */
+.shell{display:grid;grid-template-columns:minmax(0,1fr)}
+.scrim{display:none;position:fixed;inset:0;z-index:35;background:oklch(0 0 0 / .38)}
+
+/* ---------- sidebar (filters) ---------- */
+.sidebar{display:none;background:var(--bg);flex-direction:column;z-index:40}
+body[data-filters="open"] .sidebar{display:flex;position:fixed;inset:0}
+.sidebar-head{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:12px 16px;border-bottom:1px solid var(--line);background:var(--surface);
+}
+.sidebar-head h2{font-size:16px;font-weight:600}
+.sheet-close{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:40px;height:40px;margin-right:-8px;
+  background:transparent;border:0;border-radius:var(--r-sm);cursor:pointer;color:var(--ink-2);
+  transition-property:background-color,color;transition-duration:150ms;transition-timing-function:ease-out;
+}
+.sheet-close:hover{background:var(--surface-2);color:var(--ink)}
+.sheet-close .ico{width:18px;height:18px}
+.filters{flex:1;overflow-y:auto;padding:16px}
+.fgroup{border:0;margin:0 0 20px}
+.fgroup legend{font-size:var(--fs-meta);font-weight:600;color:var(--ink);padding:0 0 8px}
+.opt{display:flex;align-items:center;gap:10px;min-height:40px;padding:0 4px;border-radius:var(--r-sm);cursor:pointer}
+.opt:hover{background:var(--surface-2)}
+.opt input{
+  appearance:none;width:18px;height:18px;flex:none;margin:0;
+  border:1.5px solid var(--line-2);border-radius:3px;background:var(--surface);
+  display:grid;place-content:center;cursor:pointer;
+}
+.opt input:checked{background:var(--jade);border-color:var(--jade)}
+.opt input:checked::after{content:"";width:9px;height:5px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg) translateY(-1px)}
+.opt input:focus-visible{outline:2px solid var(--jade);outline-offset:2px}
+.opt-label{flex:1;font-size:14px}
+.opt-count{font-size:var(--fs-meta);color:var(--ink-3);font-variant-numeric:tabular-nums}
+.opt.is-empty .opt-label,.opt.is-empty .opt-count{color:var(--ink-3)}
+.opt.is-empty{opacity:.62}
+.sidebar-foot{
+  display:flex;gap:8px;align-items:center;
+  padding:12px 16px calc(12px + env(safe-area-inset-bottom));
+  border-top:1px solid var(--line);background:var(--surface);
+}
+.sidebar-foot .btn{flex:1}
+
+/* ---------- buttons ---------- */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  min-height:40px;padding:0 14px;
+  border-radius:var(--r);border:1px solid transparent;
+  font-size:14px;font-weight:500;cursor:pointer;
+  transition-property:background-color,border-color,color,box-shadow,transform;
+  transition-duration:150ms;transition-timing-function:ease-out;
+}
+.btn:active{transform:scale(.96)}
+.btn.primary{background:var(--jade);color:#fff}
+.btn.primary:hover{background:var(--jade-ink)}
+.btn.secondary{background:var(--surface);color:var(--ink);border-color:var(--line-2)}
+.btn.secondary:hover{background:var(--surface-2)}
+.btn.danger{background:var(--surface);color:var(--danger);border-color:var(--line-2)}
+.btn.danger:hover{border-color:var(--danger);background:var(--danger-tint)}
+.btn.danger-solid{background:var(--danger);color:#fff}
+.btn.danger-solid:hover{background:var(--danger-ink)}
+.btn.ghost{background:transparent;color:var(--ink-2)}
+.btn.ghost:hover{background:var(--surface-2);color:var(--ink)}
+.btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.btn:disabled:hover{background:var(--surface);border-color:var(--line-2)}
+.btn.primary:disabled:hover{background:var(--jade);border-color:transparent}
+
+/* ---------- board ---------- */
+.board{background:var(--surface);min-width:0;display:flex;flex-direction:column}
+.board-head{padding:16px 16px 12px;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.board-head h2{font-size:18px;font-weight:600}
+.board-meta{display:flex;align-items:baseline;gap:12px;font-size:var(--fs-meta);color:var(--ink-2);font-variant-numeric:tabular-nums}
+.board-meta .is-pending{color:var(--amber)}
+
+.board-rail{border-bottom:1px solid var(--line);padding-bottom:12px}
+
+.axis-row,.cov-row{display:grid;grid-template-columns:var(--row-cols);gap:0 12px;padding:0 12px;align-items:center}
+.axis{position:relative;height:16px;grid-column:3}
+.axis .tick{
+  position:absolute;bottom:2px;font-size:var(--fs-tick);color:var(--ink-3);
+  font-variant-numeric:tabular-nums;white-space:nowrap;
+}
+.cov-row{margin-top:4px}
+.cov-key{font-size:var(--fs-meta);color:var(--ink-2);grid-column:1;display:flex;flex-direction:column;gap:2px}
+.cov-key .range{font-size:var(--fs-tick);color:var(--ink-3)}
+.cov{
+  grid-column:3;display:flex;align-items:flex-end;gap:1px;height:30px;
+  border-bottom:1px solid var(--line-2);padding-bottom:1px;
+}
+.cov i{
+  flex:1;min-width:0;border-radius:1px 1px 0 0;background:var(--ink-3);
+  transition-property:height,background-color;transition-duration:150ms;transition-timing-function:ease-out;
+}
+.cov i[data-zone="off"]{background:var(--line)}
+.cov i[data-zone="tight"]{background:var(--amber)}
+.cov i[data-zone="gap"]{background:var(--danger)}
+
+.rail-foot{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:8px 12px 0}
+.finding{font-size:var(--fs-meta);color:var(--ink-2);font-variant-numeric:tabular-nums}
+.finding[data-level="tight"]{color:var(--amber)}
+.finding[data-level="gap"]{color:var(--danger)}
+.legend{display:flex;align-items:center;gap:12px;margin-left:auto;font-size:var(--fs-tick);color:var(--ink-3)}
+.legend li{display:flex;align-items:center;gap:5px}
+.sw{width:9px;height:9px;border-radius:1px;flex:none}
+.sw-normal{background:var(--ink-3)}
+.sw-tight{background:var(--amber)}
+.sw-gap{background:var(--danger)}
+
+/* ---------- shift list ---------- */
+.shifts{flex:1}
+.shifts > li{border-bottom:1px solid var(--line)}
+.shift{
+  display:block;width:100%;padding:0;text-align:left;
+  background:transparent;border:0;cursor:pointer;
+  --rail-cut:var(--surface);
+  transition-property:background-color;transition-duration:120ms;transition-timing-function:ease-out;
+}
+.shift:hover{background:var(--surface-2)}
+.shift[aria-current="true"]{background:var(--jade-tint);box-shadow:inset 0 0 0 1.5px var(--jade);--rail-cut:var(--jade-tint)}
+.shift-grid{
+  display:grid;
+  grid-template-columns:minmax(130px,1.2fr) 116px minmax(160px,1.8fr) 96px;
+  grid-template-areas:"name time track status" "station time track status";
+  align-items:center;gap:2px 12px;padding:12px;
+}
+.name{grid-area:name;font-size:var(--fs-body);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.station{grid-area:station;font-size:var(--fs-meta);color:var(--ink-2)}
+.time{grid-area:time;font-size:var(--fs-time);color:var(--ink-2);font-variant-numeric:tabular-nums;white-space:nowrap}
+.time .nextday{margin-left:4px;font-size:var(--fs-tick);color:var(--ink-3)}
+.track{
+  grid-area:track;position:relative;height:8px;border-radius:var(--r-bar);
+  background:var(--line);
+  background-image:repeating-linear-gradient(to right,transparent 0 calc(12.5% - 1px),var(--rail-cut) calc(12.5% - 1px) 12.5%);
+}
+.bar{position:absolute;top:0;bottom:0;border-radius:var(--r-bar);background:var(--ink-2)}
+.shift[data-status="pending"] .bar{background:var(--amber)}
+.shift[data-status="swapping"] .bar{background:var(--jade)}
+.shift[data-status="cancelled"] .bar{
+  background:repeating-linear-gradient(45deg,var(--danger) 0 2px,transparent 2px 5px);
+  box-shadow:inset 0 0 0 1px var(--danger);
+}
+.status{grid-area:status;display:inline-flex;align-items:center;gap:6px;font-size:var(--fs-meta);color:var(--ink-2)}
+.mark{width:9px;height:9px;flex:none;border:1.5px solid currentColor;border-radius:2px}
+.status[data-status="pending"]{color:var(--amber)}
+.status[data-status="published"] .mark{background:currentColor}
+.status[data-status="swapping"]{color:var(--jade)}
+.status[data-status="swapping"] .mark{background:linear-gradient(90deg,currentColor 50%,transparent 50%)}
+.status[data-status="cancelled"]{color:var(--danger)}
+.status[data-status="cancelled"] .mark{border-radius:50%}
+.shift[data-status="cancelled"] .name,.shift[data-status="cancelled"] .time .t-range{color:var(--ink-3)}
+
+.empty{padding:32px 16px;text-align:center;color:var(--ink-2)}
+.empty p{font-size:14px;margin-bottom:12px}
+
+/* ---------- detail ---------- */
+.detail{display:none;flex-direction:column;background:var(--surface)}
+body[data-view="detail"] .detail{
+  display:flex;position:fixed;inset:0;z-index:20;
+  animation:layer-in 300ms var(--ease) both;
+}
+@keyframes layer-in{
+  from{opacity:0;transform:translateY(12px);filter:blur(4px)}
+  to{opacity:1;transform:none;filter:none}
+}
+.detail-head{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 12px;border-bottom:1px solid var(--line);
+  background:var(--surface);
+}
+.detail-head h2{font-size:15px;font-weight:600;flex:1}
+.btn-back{
+  display:inline-flex;align-items:center;gap:4px;
+  min-height:40px;padding:0 10px 0 6px;margin-left:-6px;
+  background:transparent;border:0;border-radius:var(--r);cursor:pointer;color:var(--jade);
+  transition-property:background-color;transition-duration:150ms;transition-timing-function:ease-out;
+}
+.btn-back:hover{background:var(--jade-tint)}
+.btn-back .ico{width:18px;height:18px}
+.detail-body{flex:1;overflow-y:auto;padding:16px}
+.detail-body > * + *{margin-top:12px}
+.d-who{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.d-name{font-size:18px;font-weight:600}
+.d-station{font-size:var(--fs-meta);color:var(--ink-2)}
+.d-time{font-size:22px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:.01em}
+.d-time .d-hours{margin-left:8px;font-size:var(--fs-meta);font-weight:400;color:var(--ink-3)}
+.d-status{display:inline-flex;align-items:center;gap:6px;font-size:var(--fs-meta);color:var(--ink-2)}
+.notice{
+  font-size:var(--fs-meta);line-height:1.6;color:var(--ink-2);
+  background:var(--surface-2);border-radius:var(--r);padding:10px 12px;
+}
+.notice[data-status="pending"]{background:var(--amber-tint);color:var(--amber)}
+.notice[data-status="swapping"]{background:var(--jade-tint);color:var(--jade-ink)}
+.notice[data-status="cancelled"]{background:var(--danger-tint);color:var(--danger)}
+.daymap{margin-top:16px}
+.dm-title{font-size:var(--fs-meta);color:var(--ink-2);margin-bottom:6px}
+.dm-track{position:relative;height:12px;border-radius:var(--r-bar);background:var(--line)}
+.dm-bar{position:absolute;top:3px;height:6px;border-radius:var(--r-bar);background:var(--line-2)}
+/* the selected shift: taller, and coloured by its own status like its row bar */
+.dm-bar.self{top:0;height:12px;background:var(--ink-2)}
+.dm-bar.self[data-status="pending"]{background:var(--amber)}
+.dm-bar.self[data-status="swapping"]{background:var(--jade)}
+.dm-bar.self[data-status="cancelled"]{
+  background:repeating-linear-gradient(45deg,var(--danger) 0 2px,transparent 2px 5px);
+  box-shadow:inset 0 0 0 1px var(--danger);
+}
+.dm-note{font-size:var(--fs-tick);color:var(--ink-3);margin-top:6px}
+.d-overlap{font-size:var(--fs-meta);color:var(--ink-2);line-height:1.7}
+.d-overlap .lbl{font-weight:600;color:var(--ink);margin-right:8px}
+
+.detail-actions{
+  padding:12px 16px calc(12px + env(safe-area-inset-bottom));
+  border-top:1px solid var(--line);background:var(--surface);
+}
+.detail-actions .btn{width:100%}
+.btn-row{display:flex;gap:8px;margin-top:8px}
+.btn-row .btn{flex:1;width:auto}
+.hint{font-size:var(--fs-tick);color:var(--ink-3);margin-top:6px;line-height:1.5}
+.confirm{margin-top:12px;padding:12px;border-radius:var(--r);background:var(--danger-tint)}
+.confirm p{font-size:var(--fs-meta);color:var(--danger);line-height:1.6}
+/* while confirming, the other actions step aside so the destructive choice is the only one */
+.detail-actions[data-confirming="true"] > *:not(.confirm){display:none}
+.detail-actions[data-confirming="true"] .confirm{margin-top:0}
+
+/* ---------- toast ---------- */
+.toast{
+  position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translateX(-50%);
+  z-index:60;max-width:min(420px,calc(100vw - 32px));
+  padding:10px 14px;border-radius:var(--r);
+  background:var(--ink);color:#fff;font-size:var(--fs-meta);line-height:1.5;
+  box-shadow:var(--shadow-panel);
+}
+
+/* ---------- >=900px : tablet, filters become a panel ---------- */
+@media (min-width:900px){
+  .board-head{padding:20px 20px 14px}
+  .axis-row,.cov-row{padding:0 20px}
+  .rail-foot{padding:8px 20px 0}
+  .shift-grid{padding:12px 20px}
+  .detail-body{padding:20px}
+  .detail-body > *{max-width:560px;margin-left:auto;margin-right:auto}
+  .detail-actions{padding:12px 20px calc(12px + env(safe-area-inset-bottom))}
+  .detail-actions > *{max-width:560px;margin-left:auto;margin-right:auto}
+}
+@media (min-width:900px) and (max-width:1179px){
+  .sidebar{width:340px;max-width:86vw}
+  body[data-filters="open"] .sidebar{position:fixed;inset:0 auto 0 0;box-shadow:var(--shadow-panel)}
+  body[data-filters="open"] .scrim{display:block}
+  .detail-head{padding:8px 20px}
+  .detail-body,.detail-head h2{max-width:none}
+}
+
+/* ---------- >=1180px : desktop three-pane ---------- */
+@media (min-width:1180px){
+  :root{--row-cols:minmax(130px,1.2fr) 116px minmax(160px,1.8fr) 96px}
+  body{background:var(--surface)}
+  .app{display:grid;grid-template-rows:auto minmax(0,1fr);height:100vh;height:100dvh}
+  .topbar{position:static}
+  .shell{
+    display:grid;grid-template-columns:236px minmax(0,1fr) 320px;
+    grid-template-rows:minmax(0,1fr);
+    min-height:0;border-top:0;
+  }
+  .sidebar{
+    display:flex;position:static;inset:auto;width:auto;max-width:none;
+    background:var(--bg);border-right:1px solid var(--line);box-shadow:none;
+  }
+  .sidebar-head{background:transparent;border-bottom:0;padding-bottom:0}
+  .sidebar-head h2{font-size:var(--fs-meta)}
+  .sheet-close{display:none}
+  .sidebar-foot .btn.sheet-done{display:none}
+  .scrim{display:none !important}
+  .btn-filter{display:none}
+  .board{border-right:1px solid var(--line);overflow:hidden}
+  .shifts{overflow-y:auto;min-height:0}
+  .detail{
+    display:flex;position:static;inset:auto;z-index:auto;animation:none;
+    width:320px;min-height:0;overflow-y:auto;
+  }
+  .detail-head .btn-back{display:none}
+  .detail-body{overflow:visible}
+  .detail-actions{padding-bottom:12px}
+}
+
+/* ---------- narrow: phone composition ---------- */
+@media (max-width:899px){
+  html{-webkit-text-size-adjust:100%}
+  body{font-size:16px}
+  .board{--row-cols:minmax(0,1fr)}
+  .brand .crumb{display:none}
+  .shift-grid{
+    grid-template-columns:minmax(0,1fr) auto;
+    grid-template-areas:"name status" "station time" "track track";
+    gap:2px 12px;
+  }
+  .status{justify-self:end}
+  .time{justify-self:end}
+  .btn{min-height:44px}
+  .btn-filter{min-height:44px}
+  .btn-back{min-height:44px}
+  .sheet-close{width:44px;height:44px}
+  .opt{min-height:44px}
+  .axis-row,.cov-row{grid-template-columns:minmax(0,1fr);gap:4px 0}
+  .axis-row .cell,.cov-row .cell{display:none}
+  .axis{grid-column:1}
+  .cov{grid-column:1}
+  .cov-key{grid-column:1;flex-direction:row;align-items:baseline;gap:8px}
+  .legend{margin-left:0}
+}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.01ms !important;
+  }
+  .btn:active{transform:none}
+}
+</style>
+</head>
+<body data-view="list" data-filters="closed">
+<div class="app" id="app">
+
+  <header class="topbar">
+    <div class="brand">
+      <h1>排班台</h1>
+      <span class="crumb">
+        <span class="dot" aria-hidden="true"></span>
+        <span class="store">云檐小馆 望京店</span>
+      </span>
+    </div>
+    <span class="spacer"></span>
+    <button class="btn-filter" id="filters-open" type="button">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+        <path d="M4 7h16M7 12h10M10 17h4"/>
+      </svg>
+      筛选
+      <span class="tally" id="filter-tally" hidden></span>
+      <span class="sr-only" id="filter-sr"></span>
+    </button>
+  </header>
+
+  <div class="shell">
+
+    <aside class="sidebar panel" id="sidebar" aria-label="筛选">
+      <div class="sidebar-head">
+        <h2>筛选</h2>
+        <button class="sheet-close" id="filters-close" type="button" aria-label="关闭筛选">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+            <path d="M6 6l12 12M18 6L6 18"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="filters">
+        <fieldset class="fgroup">
+          <legend>岗位</legend>
+          <label class="opt"><input type="checkbox" data-group="station" value="灶台"><span class="opt-label">灶台</span><span class="opt-count" data-count="station:灶台">2</span></label>
+          <label class="opt"><input type="checkbox" data-group="station" value="凉菜"><span class="opt-label">凉菜</span><span class="opt-count" data-count="station:凉菜">2</span></label>
+          <label class="opt"><input type="checkbox" data-group="station" value="打荷"><span class="opt-label">打荷</span><span class="opt-count" data-count="station:打荷">2</span></label>
+          <label class="opt"><input type="checkbox" data-group="station" value="水吧"><span class="opt-label">水吧</span><span class="opt-count" data-count="station:水吧">1</span></label>
+          <label class="opt"><input type="checkbox" data-group="station" value="收银"><span class="opt-label">收银</span><span class="opt-count" data-count="station:收银">2</span></label>
+          <label class="opt"><input type="checkbox" data-group="station" value="迎宾"><span class="opt-label">迎宾</span><span class="opt-count" data-count="station:迎宾">1</span></label>
+          <label class="opt"><input type="checkbox" data-group="station" value="包间"><span class="opt-label">包间</span><span class="opt-count" data-count="station:包间">1</span></label>
+        </fieldset>
+
+        <fieldset class="fgroup">
+          <legend>班次</legend>
+          <label class="opt"><input type="checkbox" data-group="kind" value="早班"><span class="opt-label">早班</span><span class="opt-count" data-count="kind:早班">3</span></label>
+          <label class="opt"><input type="checkbox" data-group="kind" value="午市"><span class="opt-label">午市</span><span class="opt-count" data-count="kind:午市">4</span></label>
+          <label class="opt"><input type="checkbox" data-group="kind" value="晚市"><span class="opt-label">晚市</span><span class="opt-count" data-count="kind:晚市">4</span></label>
+          <label class="opt is-empty"><input type="checkbox" data-group="kind" value="夜宵"><span class="opt-label">夜宵</span><span class="opt-count" data-count="kind:夜宵">0</span></label>
+        </fieldset>
+
+        <fieldset class="fgroup">
+          <legend>状态</legend>
+          <label class="opt"><input type="checkbox" data-group="status" value="pending"><span class="opt-label">待发布</span><span class="opt-count" data-count="status:pending">2</span></label>
+          <label class="opt"><input type="checkbox" data-group="status" value="published"><span class="opt-label">已发布</span><span class="opt-count" data-count="status:published">7</span></label>
+          <label class="opt"><input type="checkbox" data-group="status" value="swapping"><span class="opt-label">换班中</span><span class="opt-count" data-count="status:swapping">1</span></label>
+          <label class="opt"><input type="checkbox" data-group="status" value="cancelled"><span class="opt-label">已取消</span><span class="opt-count" data-count="status:cancelled">1</span></label>
+        </fieldset>
+      </div>
+
+      <div class="sidebar-foot">
+        <button class="btn ghost" type="button" data-clear>清除全部筛选</button>
+        <button class="btn primary sheet-done" id="filters-done" type="button">查看 <span id="sheet-count">11</span> 个班次</button>
+      </div>
+    </aside>
+
+    <main class="board" id="board">
+      <div class="board-head">
+        <h2>3月14日 周四</h2>
+        <p class="board-meta">
+          <span id="m-total">11 个班次</span>
+          <span class="is-pending" id="m-pending">2 个待发布</span>
+        </p>
+      </div>
+
+      <div class="board-rail">
+        <div class="axis-row">
+          <span class="cell"></span>
+          <span class="cell"></span>
+          <div class="axis" id="axis" aria-hidden="true"></div>
+          <span class="cell"></span>
+        </div>
+
+        <div class="cov-row">
+          <div class="cov-key"><span>在岗人数</span><span class="range">营业 10:00–22:30</span></div>
+          <span class="cell"></span>
+          <div class="cov" id="coverage" role="img" aria-label="今日各时段在岗人数，15:00 至 17:00 最低，仅 1 人"></div>
+          <span class="cell"></span>
+        </div>
+
+        <div class="rail-foot">
+          <p class="finding" id="finding" data-level="gap">15:00–17:00 在岗 1–2 人</p>
+          <ul class="legend">
+            <li><span class="sw sw-normal" aria-hidden="true"></span>3 人及以上</li>
+            <li><span class="sw sw-tight" aria-hidden="true"></span>2 人</li>
+            <li><span class="sw sw-gap" aria-hidden="true"></span>1 人及以下</li>
+          </ul>
+        </div>
+      </div>
+
+      <ul class="shifts" id="shifts">
+        <li>
+          <button class="shift" type="button" data-id="s5" data-staff="周晓岚" data-station="凉菜" data-start="540" data-end="900" data-status="published" aria-current="false">
+            <span class="shift-grid">
+              <span class="name">周晓岚</span>
+              <span class="station">凉菜</span>
+              <span class="time"><span class="t-range">09:00–15:00</span></span>
+              <span class="track" aria-hidden="true"><span class="bar" style="left:6.25%;width:37.5%"></span></span>
+              <span class="status" data-status="published"><span class="mark" aria-hidden="true"></span><span class="status-label">已发布</span></span>
+            </span>
+          </button>
+        </li>
+        <li>
+          <button class="shift" type="button" data-id="s2" data-staff="李振宇" data-station="灶台" data-start="570" data-end="870" data-status="published" aria-current="false">
+            <span class="shift-grid">
+              <span class="name">李振宇</span>
+              <span class="station">灶台</span>
+              <span class="time"><span class="t-range">09:30–14:30</span></span>
+              <span class="track" aria-hidden="true"><span class="bar" style="left:9.375%;width:31.25%"></span></span>
+              <span class="status" data-status="published"><span class="mark" aria-hidden="true"></span><span class="status-label">已发布</span></span>
+            </span>
+          </button>
+        </li>
+        <li>
+          <button class="shift" type="button" data-id="s1" data-staff="陈嘉禾" data-station="收银" data-start="600" data-end="1080" data-status="published" aria-current="false">
+            <span class="shift-grid">
+              <span class="name">陈嘉禾</span>
+              <span class="station">收银</span>
+              <span class="time"><span class="t-range">10:00–18:00</span></span>
+              <span class="track" aria-hidden="true"><span class="bar" style="left:12.5%;width:50%"></span></span>
+              <span class="status" data-status="published"><span class="mark" aria-hidden="true"></span><span class="status-label">已发布</span></span>
+            </span>
+          </button>
+        </li>
+        <li>
+          <button class="shift" type="button" data-id="s4" data-staff="吴倩" data-station="水吧" data-start="660" data-end="960" data-status="pending" aria-current="true">
+            <span class="shift-grid">
+              <span class="name">吴倩</span>
+              <span class="station">水吧</span>
+              <span class="time"><span class="t-range">11:00–16:00</span></span>
+              <span class="track" aria-hidden="true"><span class="bar" style="left:18.75%;width:31.25%"></span></span>
+              <span class="status" data-status="pending"><span class="mark" aria-hidden="true"></span><span class="status-label">待发布</span></span>
+            </span>
+          </button>
+        </li>
+        <li>
+          <button class="shift" type="button" data-id="s7" data-staff="何静" data-station="迎宾" data-start="690" data-end="930" data-status="published" aria-current="false">
+            <span class="shift-grid">
+              <span class="name">何静</span>
+              <span class="station">迎宾</span>
+              <span class="time"><span class="t-range">11:30–15:30</span></span>
+              <span class="track" aria-hidden="true"><span class="bar" style="left:21.875%;width:25%"></span></span>
+              <span class="status" data-status="published"><span class="mark" aria-hidden="true"></span><span class="status-label">已发布</span></span>
+            </span>
+          </button>
+        </li>
+        <li>
+          <button class="shift" type="button" data-id="s9" data-staff="邓一舟" data-station="打荷" data-start="720" data-end="1200" data-status="pending" aria-current="false">
+            <span class="shift-grid">
+              <span class="name">邓一舟</span>
+              <span class="station">打荷</span>
+              <span class="time"><span class="t-range">12:00–20:00</span></span>
+              <span class="track" aria-hidden="true"><span class="bar" style="left:25%;width:50%"></span></span>
+              <span class="status" data-status="pending"><span class="mark" aria-hidden="true"></span><span class="status-label">待发布</span></span>
+            </span>
+          </button>
+        </li>
+        <li>
+          <button class="shift" type="button" data-id="s11" data-staff="苏航" data-station="凉菜" data-start="840" data-end="1320" data-status="cancelled" aria-current="false">
+            <span class="shift-grid">
+              <span class="name">苏航</span>
+              <span class="station">凉菜</span>
+              <span class="time"><span class="t-range">14:00–22:00</span></span>
+              <span class="track" aria-hidden="true"><span class="bar" style="left:37.5%;width:50%"></span></span>
+              <span class="status" data-status="cancelled"><span class="mark" aria-hidden="true"></span><span class="status-label">已取消</span></span>
+            </span>
+          </button>
+        </li>
+        <li>
+          <button class="shift" type="button" data-id="s3" data-staff="马亦辰" data-station="灶台" data-start="990" data-end="1350" data-status="published" aria-current="false">
+            <span class="shift-grid">
+              <span class="name">马亦辰</span>
+              <span class="station">灶台</span>
+              <span class="time"><span class="t-range">16:30–22:30</span></span>
+              <span class="track" aria-hidden="true"><span class="bar" style="left:53.125%;width:37.5%"></span></span>
+              <span class="status" data-status="published"><span class="mark" aria-hidden="true"></span><span class="status-label">已发布</span></span>
+            </span>
+          </button>
+        </li>
+        <li>
+          <button class="shift" type="button" data-id="s6" data-staff="郑明远" data-station="打荷" data-start="1020" data-end="1380" data-status="swapping" aria-current="false">
+            <span class="shift-grid">
+              <span class="name">郑明远</span>
+              <span class="station">打荷</span>
+              <span class="time"><span class="t-range">17:00–23:00</span></span>
+              <span class="track" aria-hidden="true"><span class="bar" style="left:56.25%;width:37.5%"></span></span>
+              <span class="status" data-status="swapping"><span class="mark" aria-hidden="true"></span><span class="status-label">换班中</span></span>
+            </span>
+          </button>
+        </li>
+        <li>
+          <button class="shift" type="button" data-id="s8" data-staff="徐岚" data-station="包间" data-start="1050" data-end="1500" data-status="published" aria-current="false">
+            <span class="shift-grid">
+              <span class="name">徐岚</span>
+              <span class="station">包间</span>
+              <span class="time"><span class="t-range">17:30–01:00</span><span class="nextday">次日</span></span>
+              <span class="track" aria-hidden="true"><span class="bar" style="left:59.375%;width:40.625%"></span></span>
+              <span class="status" data-status="published"><span class="mark" aria-hidden="true"></span><span class="status-label">已发布</span></span>
+            </span>
+          </button>
+        </li>
+        <li>
+          <button class="shift" type="button" data-id="s10" data-staff="刘敏" data-station="收银" data-start="1080" data-end="1440" data-status="published" aria-current="false">
+            <span class="shift-grid">
+              <span class="name">刘敏</span>
+              <span class="station">收银</span>
+              <span class="time"><span class="t-range">18:00–24:00</span></span>
+              <span class="track" aria-hidden="true"><span class="bar" style="left:62.5%;width:37.5%"></span></span>
+              <span class="status" data-status="published"><span class="mark" aria-hidden="true"></span><span class="status-label">已发布</span></span>
+            </span>
+          </button>
+        </li>
+      </ul>
+
+      <div class="empty" id="empty" hidden>
+        <p>没有符合条件的班次</p>
+        <button class="btn secondary" type="button" data-clear>清除全部筛选</button>
+      </div>
+    </main>
+
+    <section class="detail" id="detail" aria-label="班次详情">
+      <div class="detail-head">
+        <button class="btn-back" id="detail-back" type="button">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M14 6l-6 6 6 6"/>
+          </svg>
+          返回
+        </button>
+        <h2>班次详情</h2>
+      </div>
+
+      <div class="detail-body">
+        <div class="d-who">
+          <span class="d-name" id="d-name">吴倩</span>
+          <span class="d-station" id="d-station">水吧</span>
+        </div>
+        <p class="d-time"><span id="d-range">11:00–16:00</span><span class="d-hours" id="d-hours">5 小时</span></p>
+        <p class="d-status" id="d-status" data-status="pending"><span class="mark" aria-hidden="true"></span><span class="status-label">待发布</span></p>
+        <p class="notice" id="d-notice" data-status="pending">该班次尚未发布，员工端不可见。</p>
+
+        <figure class="daymap">
+          <figcaption class="dm-title">当日位置</figcaption>
+          <div class="dm-track" id="daymap" aria-hidden="true"></div>
+          <p class="dm-note">灰条为当日其他在岗班次，范围 08:00–24:00</p>
+        </figure>
+
+        <p class="d-overlap" id="d-overlap"><span class="lbl">同时在岗</span>周晓岚、李振宇、陈嘉禾、何静</p>
+      </div>
+
+      <div class="detail-actions">
+        <button class="btn primary" id="a-publish" type="button">发布排班</button>
+        <p class="hint" id="hint-publish" hidden></p>
+        <div class="btn-row">
+          <button class="btn secondary" id="a-swap" type="button">发起换班</button>
+          <button class="btn danger" id="a-cancel" type="button">取消班次</button>
+        </div>
+        <p class="hint" id="hint-swap" hidden>发布后才能发起换班</p>
+
+        <div class="confirm" id="confirm" hidden>
+          <p>取消后该班次不再计薪，员工端会收到通知。</p>
+          <div class="btn-row">
+            <button class="btn danger-solid" id="a-cancel-yes" type="button">确认取消</button>
+            <button class="btn ghost" id="a-cancel-no" type="button">返回</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<div class="scrim" id="scrim" hidden></div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+(function () {
+  'use strict';
+
+  var AXIS_START = 480, AXIS_END = 1440, SPAN = AXIS_END - AXIS_START;
+  var BIN = 30, BINS = SPAN / BIN;
+  var OPEN_FROM = 600, OPEN_TO = 1350, PEAK_SCALE = 4;
+  var STATUS_LABEL = { pending: '待发布', published: '已发布', swapping: '换班中', cancelled: '已取消' };
+  var COVERED = { published: true, swapping: true };
+
+  var body = document.body;
+  var toastEl = document.getElementById('toast');
+  var toastTimer = null;
+
+  var rows = [].slice.call(document.querySelectorAll('.shift')).map(function (el) {
+    return {
+      el: el,
+      id: el.getAttribute('data-id'),
+      staff: el.getAttribute('data-staff'),
+      station: el.getAttribute('data-station'),
+      start: parseInt(el.getAttribute('data-start'), 10),
+      end: parseInt(el.getAttribute('data-end'), 10),
+      status: el.getAttribute('data-status')
+    };
+  });
+  var byId = {};
+  rows.forEach(function (r) { byId[r.id] = r; });
+
+  var selectedId = (document.querySelector('.shift[aria-current="true"]') || rows[0]).getAttribute('data-id');
+  var filters = { station: {}, kind: {}, status: {} };
+
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function hhmm(m) { var h = Math.floor(m / 60), mm = m % 60; return pad(h) + ':' + pad(mm); }
+  function label(m) { return hhmm(m % 1440); }
+  function kindOf(start) {
+    if (start < 630) { return '早班'; }
+    if (start < 900) { return '午市'; }
+    if (start < 1260) { return '晚市'; }
+    return '夜宵';
+  }
+  function hoursText(minutes) {
+    var h = Math.round(minutes / 6) / 10;
+    return (h % 1 === 0 ? h : h.toFixed(1)) + ' 小时';
+  }
+  function leftPct(m) { return (m - AXIS_START) / SPAN * 100; }
+  function widthPct(a, b) { return (Math.min(b, AXIS_END) - a) / SPAN * 100; }
+  function valueOf(r, group) {
+    if (group === 'station') { return r.station; }
+    if (group === 'kind') { return kindOf(r.start); }
+    return r.status;
+  }
+  function groupEmpty(group) {
+    var m = filters[group];
+    for (var k in m) { if (m[k]) { return false; } }
+    return true;
+  }
+  function matches(r, skipGroup) {
+    var groups = ['station', 'kind', 'status'];
+    for (var i = 0; i < groups.length; i++) {
+      var g = groups[i];
+      if (g === skipGroup || groupEmpty(g)) { continue; }
+      if (!filters[g][valueOf(r, g)]) { return false; }
+    }
+    return true;
+  }
+
+  /* ---- static rails ---- */
+  function paintAxis() {
+    var axis = document.getElementById('axis');
+    var html = '';
+    for (var m = AXIS_START; m <= AXIS_END; m += 120) {
+      var p = leftPct(m);
+      var shift = m === AXIS_START ? '0' : (m === AXIS_END ? '-100%' : '-50%');
+      html += '<span class="tick" style="left:' + p + '%;transform:translateX(' + shift + ')">' + pad(m / 60) + '</span>';
+    }
+    axis.innerHTML = html;
+  }
+
+  /* ---- coverage ---- */
+  function coverageBins() {
+    var bins = [];
+    var i;
+    for (i = 0; i < BINS; i++) { bins.push(0); }
+    rows.forEach(function (r) {
+      if (!COVERED[r.status]) { return; }
+      var a = Math.max(0, Math.floor((r.start - AXIS_START) / BIN));
+      var b = Math.min(BINS, Math.ceil((Math.min(r.end, AXIS_END) - AXIS_START) / BIN));
+      for (i = a; i < b; i++) { bins[i] += 1; }
+    });
+    return bins;
+  }
+  function zoneOf(count) {
+    if (count >= 3) { return 'normal'; }
+    if (count === 2) { return 'tight'; }
+    return 'gap';
+  }
+  function paintCoverage() {
+    var bins = coverageBins();
+    var cov = document.getElementById('coverage');
+    var i, t;
+    if (!cov.firstChild) {
+      var frag = document.createDocumentFragment();
+      for (i = 0; i < BINS; i++) { frag.appendChild(document.createElement('i')); }
+      cov.appendChild(frag);
+    }
+    for (i = 0; i < BINS; i++) {
+      t = AXIS_START + i * BIN;
+      var node = cov.children[i];
+      var off = (t < OPEN_FROM || t >= OPEN_TO);
+      var h = Math.max(2, Math.round(bins[i] / PEAK_SCALE * 26));
+      node.style.height = h + 'px';
+      node.setAttribute('data-zone', off ? 'off' : zoneOf(bins[i]));
+      node.setAttribute('title', label(t) + ' ' + (off ? '非营业时段' : bins[i] + ' 人在岗'));
+    }
+
+    /* the one finding worth surfacing */
+    var runs = [], cur = null;
+    for (i = 0; i < BINS; i++) {
+      t = AXIS_START + i * BIN;
+      if (t >= OPEN_FROM && t < OPEN_TO && bins[i] <= 2) {
+        if (!cur) { cur = { from: t, to: t + BIN, min: bins[i], max: bins[i] }; }
+        else { cur.to = t + BIN; cur.min = Math.min(cur.min, bins[i]); cur.max = Math.max(cur.max, bins[i]); }
+      } else if (cur) { runs.push(cur); cur = null; }
+    }
+    if (cur) { runs.push(cur); }
+    var finding = document.getElementById('finding');
+    if (!runs.length) {
+      finding.textContent = '营业时段各时段在岗不少于 3 人';
+      finding.setAttribute('data-level', 'ok');
+      return;
+    }
+    var text = runs.slice(0, 2).map(function (run) {
+      return label(run.from) + '–' + label(run.to) + ' 在岗 ' +
+        (run.min === run.max ? run.min + ' 人' : run.min + '–' + run.max + ' 人');
+    }).join('，');
+    if (runs.length > 2) { text += ' 等 ' + runs.length + ' 处'; }
+    finding.textContent = text;
+    finding.setAttribute('data-level', runs[0].min <= 1 ? 'gap' : 'tight');
+  }
+
+  /* ---- list ---- */
+  function paintRow(r) {
+    var bar = r.el.querySelector('.bar');
+    bar.style.left = leftPct(r.start) + '%';
+    bar.style.width = widthPct(r.start, r.end) + '%';
+    r.el.setAttribute('data-status', r.status);
+    r.el.setAttribute('aria-current', r.id === selectedId ? 'true' : 'false');
+    var st = r.el.querySelector('.status');
+    st.setAttribute('data-status', r.status);
+    st.querySelector('.status-label').textContent = STATUS_LABEL[r.status];
+  }
+  function paintList() {
+    var visible = 0;
+    rows.forEach(function (r) {
+      var ok = matches(r, null);
+      r.el.hidden = !ok;
+      r.el.parentNode.hidden = !ok;
+      if (ok) { visible += 1; }
+      paintRow(r);
+    });
+    if (!visible) {
+      document.getElementById('empty').hidden = false;
+    } else {
+      document.getElementById('empty').hidden = true;
+      var sel = byId[selectedId];
+      if (!sel || !matches(sel, null)) {
+        var first = null;
+        for (var i = 0; i < rows.length; i++) {
+          if (matches(rows[i], null)) { first = rows[i]; break; }
+        }
+        if (first) {
+          selectedId = first.id;
+          rows.forEach(function (r) { paintRow(r); });
+        }
+      }
+    }
+    document.getElementById('m-total').textContent = visible + ' 个班次';
+    var pending = rows.filter(function (r) { return r.status === 'pending' && matches(r, null); }).length;
+    var pendingEl = document.getElementById('m-pending');
+    pendingEl.hidden = pending === 0;
+    pendingEl.textContent = pending + ' 个待发布';
+    document.getElementById('sheet-count').textContent = visible;
+    paintCounts();
+  }
+  function paintCounts() {
+    var nodes = document.querySelectorAll('[data-count]');
+    [].slice.call(nodes).forEach(function (node) {
+      var parts = node.getAttribute('data-count').split(':');
+      var group = parts[0], value = parts.slice(1).join(':');
+      var n = rows.filter(function (r) { return valueOf(r, group) === value && matches(r, group); }).length;
+      node.textContent = n;
+      node.parentNode.classList.toggle('is-empty', n === 0);
+    });
+    var active = 0;
+    ['station', 'kind', 'status'].forEach(function (group) {
+      var m = filters[group];
+      for (var k in m) { if (m[k]) { active += 1; } }
+    });
+    var tally = document.getElementById('filter-tally');
+    tally.hidden = active === 0;
+    tally.textContent = active;
+    document.getElementById('filter-sr').textContent = active ? '已选 ' + active + ' 项' : '';
+  }
+
+  /* ---- detail ---- */
+  function noticeFor(r) {
+    if (r.status === 'pending') { return '该班次尚未发布，员工端不可见。'; }
+    if (r.status === 'swapping') { return '换班邀请已发给 邓一舟、刘敏，尚未回应。'; }
+    if (r.status === 'cancelled') { return '该班次已取消，不计工时。'; }
+    return '已于 3月13日 21:40 发布。';
+  }
+  function paintDetail() {
+    var r = byId[selectedId];
+    if (!r) { return; }
+    document.getElementById('d-name').textContent = r.staff;
+    document.getElementById('d-station').textContent = r.station + ' ' + kindOf(r.start);
+    document.getElementById('d-range').textContent = label(r.start) + '–' + label(r.end);
+    document.getElementById('d-hours').textContent = hoursText(r.end - r.start);
+    var st = document.getElementById('d-status');
+    st.setAttribute('data-status', r.status);
+    st.querySelector('.status-label').textContent = STATUS_LABEL[r.status];
+    var notice = document.getElementById('d-notice');
+    notice.setAttribute('data-status', r.status);
+    notice.textContent = noticeFor(r);
+
+    var map = document.getElementById('daymap');
+    map.innerHTML = '';
+    rows.forEach(function (o) {
+      if (o.id !== r.id && !COVERED[o.status]) { return; }
+      var s = document.createElement('span');
+      s.className = 'dm-bar' + (o.id === r.id ? ' self' : '');
+      if (o.id === r.id) { s.setAttribute('data-status', o.status); }
+      s.style.left = leftPct(o.start) + '%';
+      s.style.width = widthPct(o.start, o.end) + '%';
+      map.appendChild(s);
+    });
+
+    /* who is actually on the floor while this shift runs */
+    var mates = rows.filter(function (o) {
+      return o.id !== r.id && COVERED[o.status] && o.start < r.end && o.end > r.start;
+    }).sort(function (a, b) { return a.start - b.start; });
+    var overlap = document.getElementById('d-overlap');
+    overlap.textContent = '';
+    if (!mates.length) {
+      overlap.textContent = '该时段没有其他在岗人员';
+    } else {
+      var lbl = document.createElement('span');
+      lbl.className = 'lbl';
+      lbl.textContent = '同时在岗';
+      overlap.appendChild(lbl);
+      overlap.appendChild(document.createTextNode(mates.map(function (o) { return o.staff; }).join('、')));
+    }
+
+    var pub = document.getElementById('a-publish');
+    var swap = document.getElementById('a-swap');
+    var cancel = document.getElementById('a-cancel');
+    var hp = document.getElementById('hint-publish');
+    var hs = document.getElementById('hint-swap');
+    document.getElementById('confirm').hidden = true;
+    document.querySelector('.detail-actions').removeAttribute('data-confirming');
+
+    pub.disabled = false; swap.disabled = false; cancel.disabled = false;
+    hp.hidden = true; hs.hidden = true;
+    pub.textContent = '发布排班';
+    swap.textContent = '发起换班';
+    cancel.textContent = '取消班次';
+
+    if (r.status === 'pending') {
+      hs.hidden = false;
+      swap.disabled = true;
+    } else if (r.status === 'published') {
+      pub.disabled = true;
+      pub.textContent = '已发布';
+      hp.hidden = false;
+      hp.textContent = '员工端已可查看。';
+    } else if (r.status === 'swapping') {
+      pub.disabled = true;
+      pub.textContent = '已发布';
+      hp.hidden = false;
+      hp.textContent = '换班进行中，无需重复发布。';
+      swap.disabled = true;
+      swap.textContent = '换班进行中';
+      hs.hidden = false;
+      hs.textContent = '等待接替员工回应。';
+    } else {
+      pub.disabled = true;
+      hp.hidden = false;
+      hp.textContent = '班次已取消。';
+      swap.disabled = true;
+      hs.hidden = false;
+      hs.textContent = '已取消的班次不能换班。';
+      cancel.disabled = true;
+      cancel.textContent = '已取消';
+    }
+  }
+
+  /* ---- layers ---- */
+  function isPhone() { return window.matchMedia('(max-width:1179px)').matches; }
+  function setFilters(open) {
+    body.setAttribute('data-filters', open ? 'open' : 'closed');
+    document.getElementById('scrim').hidden = !(open && window.matchMedia('(min-width:900px)').matches);
+    if (open) {
+      document.getElementById('filters-close').focus();
+    } else {
+      document.getElementById('filters-open').focus();
+    }
+  }
+  function setView(view) {
+    body.setAttribute('data-view', view);
+    if (view === 'detail') {
+      document.getElementById('detail-back').focus();
+    }
+  }
+  function closeLayers() {
+    var filtersOpen = body.getAttribute('data-filters') === 'open';
+    if (filtersOpen) { setFilters(false); return true; }
+    if (body.getAttribute('data-view') === 'detail') { setView('list'); return true; }
+    if (!document.getElementById('confirm').hidden) {
+      document.getElementById('confirm').hidden = true;
+      document.querySelector('.detail-actions').removeAttribute('data-confirming');
+      document.getElementById('a-cancel').focus();
+      return true;
+    }
+    return false;
+  }
+  function toast(message) {
+    toastEl.textContent = message;
+    toastEl.hidden = false;
+    if (toastTimer) { window.clearTimeout(toastTimer); }
+    toastTimer = window.setTimeout(function () { toastEl.hidden = true; }, 3600);
+  }
+  function select(id, openDetail) {
+    selectedId = id;
+    rows.forEach(paintRow);
+    paintDetail();
+    if (openDetail && isPhone()) { setView('detail'); }
+  }
+  function setStatus(id, status) {
+    byId[id].status = status;
+    paintRow(byId[id]);
+    paintCoverage();
+    paintList();
+    paintDetail();
+  }
+
+  /* ---- events ---- */
+  document.getElementById('shifts').addEventListener('click', function (e) {
+    var btn = e.target.closest ? e.target.closest('.shift') : null;
+    if (btn) { select(btn.getAttribute('data-id'), true); }
+  });
+  document.getElementById('filters-open').addEventListener('click', function () { setFilters(true); });
+  document.getElementById('filters-close').addEventListener('click', function () { setFilters(false); });
+  document.getElementById('filters-done').addEventListener('click', function () { setFilters(false); });
+  document.getElementById('scrim').addEventListener('click', function () { setFilters(false); });
+  document.getElementById('detail-back').addEventListener('click', function () { setView('list'); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') { closeLayers(); }
+  });
+  document.querySelectorAll('.filters input[type="checkbox"]').forEach(function (box) {
+    box.addEventListener('change', function () {
+      filters[box.getAttribute('data-group')][box.value] = box.checked;
+      paintList();
+    });
+  });
+  document.querySelectorAll('[data-clear]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('.filters input[type="checkbox"]').forEach(function (box) {
+        box.checked = false;
+        filters[box.getAttribute('data-group')][box.value] = false;
+      });
+      paintList();
+    });
+  });
+  document.getElementById('a-publish').addEventListener('click', function () {
+    var r = byId[selectedId];
+    setStatus(r.id, 'published');
+    toast('已发布 ' + r.staff + ' 的班次，员工端已可见');
+  });
+  document.getElementById('a-swap').addEventListener('click', function () {
+    var r = byId[selectedId];
+    setStatus(r.id, 'swapping');
+    toast('已向 邓一舟、刘敏 发出换班邀请');
+  });
+  document.getElementById('a-cancel').addEventListener('click', function () {
+    document.querySelector('.detail-actions').setAttribute('data-confirming', 'true');
+    document.getElementById('confirm').hidden = false;
+    document.getElementById('a-cancel-yes').focus();
+  });
+  document.getElementById('a-cancel-no').addEventListener('click', function () {
+    document.querySelector('.detail-actions').removeAttribute('data-confirming');
+    document.getElementById('confirm').hidden = true;
+    document.getElementById('a-cancel').focus();
+  });
+  document.getElementById('a-cancel-yes').addEventListener('click', function () {
+    var r = byId[selectedId];
+    setStatus(r.id, 'cancelled');
+    toast('已取消 ' + r.staff + ' 的班次');
+  });
+
+  /* ---- init ---- */
+  paintAxis();
+  paintCoverage();
+  paintList();
+  paintDetail();
+}());
+</script>
+</body>
+</html>

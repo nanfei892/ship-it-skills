@@ -8,9 +8,18 @@
 # page in a fixed-width iframe, which gets a true layout viewport of its own, and
 # reads measurements back out of the DOM instead of out of pixels.
 #
+# Use this for measurement. For images, use shot2.ps1, which captures through the
+# same iframe approach — never shot.ps1 at a narrow width.
+#
 # usage:
 #   pwsh -File measure.ps1 -Html path\to\index.html -Width 390
 #   pwsh -File measure.ps1 -Html path\to\index.html -Width 390 -Height 844
+#
+# Always check that the VIEWPORT line matches the width you asked for. If it does
+# not, whatever tool produced your screenshots is not rendering what you think.
+#
+# PowerShell trap, learned the hard way: an unquoted `--window-size=$w,$h` is parsed
+# as TWO arguments and the size is silently dropped. Quote the whole flag.
 
 param(
   [Parameter(Mandatory = $true)][string]$Html,
@@ -34,13 +43,32 @@ New-Item -ItemType Directory -Force -Path $work | Out-Null
 $probe = @'
 (function () {
   function mq(q) { return window.matchMedia(q).matches ? 'MATCH' : 'no'; }
+  function hiddenBy(e) {
+    // returns 'self' if the element hides itself, 'ancestor' if an ancestor does,
+    // 'visibility' if either is visibility:hidden, otherwise null
+    for (var n = e; n && n.nodeType === 1; n = n.parentElement) {
+      var cs = getComputedStyle(n);
+      if (cs.visibility === 'hidden') return 'visibility';
+      if (cs.display === 'none') return (n === e) ? 'self' : 'ancestor';
+    }
+    return null;
+  }
+  function rendered(e) {
+    return !hiddenBy(e) && e.getClientRects().length > 0;
+  }
   function box(sel) {
     var e = document.querySelector(sel);
     if (!e) return null;
     var b = e.getBoundingClientRect(), cs = getComputedStyle(e);
+    var hid = hiddenBy(e);
+    var state = (hid === 'self') ? 'NOT RENDERED (display:none)'
+              : (hid === 'ancestor') ? 'NOT RENDERED (an ancestor is display:none)'
+              : (hid === 'visibility') ? 'NOT RENDERED (visibility:hidden)'
+              : (b.width === 0 || b.height === 0) ? 'zero size WHILE VISIBLE - check this one'
+              : 'rendered';
     return sel + ' x=' + Math.round(b.x) + ' y=' + Math.round(b.y) +
       ' w=' + Math.round(b.width) + ' h=' + Math.round(b.height) +
-      ' pos=' + cs.position + ' disp=' + cs.display;
+      ' pos=' + cs.position + ' disp=' + cs.display + '  [' + state + ']';
   }
   function run() {
     var L = [];
@@ -53,14 +81,32 @@ $probe = @'
     L.push('media (max-width:500px): ' + mq('(max-width:500px)') +
            '   (max-width:400px): ' + mq('(max-width:400px)'));
     L.push('');
-    ['body','header','nav','main','footer','.app','.workspace','.rail','.filtersheet',
-     '.station','.queue','.panel','.detail','.rail-sel','.page','.wrap','.hero','.card',
-     'article','.log','.sheet'].forEach(function (s) {
+    L.push('-- regions --');
+    var sels = ['body','header','nav','aside','main','footer','section',
+      '.app','.shell','.workspace','.sidebar','.rail','.rail-sel','.filtersheet',
+      '.filters','.panel','.station','.list','.queue','.table','.detail','.drawer',
+      '.sheet','.page','.wrap','.hero','.card','.grid','article','.log'];
+    var missing = [], collapsed = [];
+    sels.forEach(function (s) {
       var line = box(s);
-      if (line) L.push(line);
+      if (line) {
+        L.push(line);
+        var e = document.querySelector(s);
+        if (!rendered(e)) collapsed.push(s);
+      } else {
+        missing.push(s);
+      }
     });
-    var ws = document.querySelector('.workspace');
-    if (ws) L.push('workspace grid-template-columns: ' +
+    var shown = sels.length - missing.length;
+    L.push('');
+    L.push('regions present: ' + shown + ' of ' + sels.length +
+           '   (not present: ' + (missing.join(' ') || 'none') + ')');
+    L.push('regions NOT rendered in this state: ' + (collapsed.join(' ') || 'none'));
+    L.push('  ^ these are absent from the initial view. For each one, confirm a control');
+    L.push('    that is actually rendered opens it, and that it can be closed again.');
+
+    var ws = document.querySelector('.workspace, .shell, .app');
+    if (ws) L.push('container grid-template-columns: ' +
                    getComputedStyle(ws).gridTemplateColumns);
 
     var over = [];
@@ -75,28 +121,47 @@ $probe = @'
     L.push('ELEMENTS OVERFLOWING HORIZONTALLY: ' + over.length);
     over.slice(0, 15).forEach(function (o) { L.push('   ' + o); });
 
+    // smallest text that is actually on screen
     var small = null;
-    document.querySelectorAll('p,span,li,td,th,label,a,button,div,h1,h2,h3').forEach(function (e) {
+    document.querySelectorAll('p,span,li,td,th,label,a,button,div,h1,h2,h3,small,b,i').forEach(function (e) {
       if (!e.textContent.trim()) return;
+      if (e.children.length && !e.textContent.trim()) return;
+      if (!rendered(e)) return;
       var fs = parseFloat(getComputedStyle(e).fontSize);
       if (!small || fs < small.fs) small = { fs: fs, t: e.textContent.trim().slice(0, 24) };
     });
     L.push('');
     L.push('smallest rendered text: ' + (small ? small.fs + 'px  "' + small.t + '"' : 'n/a'));
 
-    var minHit = null;
+    // smallest interactive target, resolving a control to its real hit area
+    var minHit = null, controlCount = 0;
     document.querySelectorAll('button,a,input,select,textarea,[role=button]').forEach(function (e) {
-      var b = e.getBoundingClientRect();
+      if (!rendered(e)) return;
+      var target = e;
+      if (e.tagName === 'INPUT' && (e.type === 'checkbox' || e.type === 'radio')) {
+        var lab = e.closest('label') ||
+          (e.id && document.querySelector('label[for="' + e.id + '"]'));
+        if (!lab) {
+          var b0 = e.getBoundingClientRect();
+          if (b0.width <= 1 || b0.height <= 1) return; // visually hidden input, its label is the target
+        } else {
+          target = lab;
+        }
+      }
+      var b = target.getBoundingClientRect();
       if (b.width === 0 || b.height === 0) return;
+      controlCount++;
       var m = Math.min(b.width, b.height);
       if (!minHit || m < minHit.m) {
-        minHit = { m: Math.round(m), t: (e.textContent.trim() || e.tagName).slice(0, 24) };
+        minHit = { m: Math.round(m),
+                   t: (target.textContent.trim() || e.getAttribute('aria-label') || e.tagName).slice(0, 24) };
       }
     });
     L.push('smallest interactive dimension: ' +
-           (minHit ? minHit.m + 'px  "' + minHit.t + '"' : 'n/a'));
+           (minHit ? minHit.m + 'px  "' + minHit.t + '"' : 'n/a') +
+           '   (' + controlCount + ' rendered controls)');
 
-    var allCount = 0, declared = 0;
+    var allCount = 0;
     document.querySelectorAll('*').forEach(function (e) {
       var cs = getComputedStyle(e);
       if (cs.transitionProperty === 'all' && parseFloat(cs.transitionDuration) > 0) allCount++;

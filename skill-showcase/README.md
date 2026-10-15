@@ -1,40 +1,48 @@
 # Skill Showcase — make-ui-not-ai in practice
 
-Three pages built with the rewritten [`make-ui-not-ai`](../make-ui-not-ai/SKILL.md) skill, deliberately
-divergent in style, on one shared subject: a Chinese food-ordering product (饭点 / 食记). All three were
-rendered in a real browser and inspected as images before being accepted.
+Four pages built with the rewritten [`make-ui-not-ai`](../make-ui-not-ai/SKILL.md) skill, deliberately
+divergent in style. The first three share one subject — a Chinese food-ordering product (饭点 / 食记) — and
+were built while the skill was being written. The fourth was built by an agent that had never seen this
+directory, working only from `SKILL.md`, and is the strongest evidence here that the skill transfers.
+Every page was rendered in a real browser and inspected as images before being accepted.
 
 This directory exists to prove the skill's central claim: **naming specific refusals produces distinct,
 product-specific interfaces, and inspection catches defects that tests cannot.**
 
-## The three directions
+## The four directions
 
 | Build | Product | Direction | Palette | Type | Signature move |
 | --- | --- | --- | --- | --- | --- |
 | [a-expressive](a-expressive/index.html) | 饭点 — consumer ordering | Queue-ticket / receipt vernacular. Cool, sharp, high-contrast. | paper `#F7F7F4`, ink `#14161A`, signal red `#E4341F`, jade `#0F4D3A` | Anton + Noto Sans SC + IBM Plex Mono | Rubber-stamp imprint; 0–4px radii throughout |
 | [b-operational](b-operational/index.html) | 饭点商家台 — merchant console | Dense, neutral, low-chroma tool surface. Data first. | `#FBFBFA`, `#1A1C1F`, signal `#D93A1A`, jade `#2F6B57` | Noto Sans SC + IBM Plex Mono | Order rail as the spine of the layout |
 | [c-content-led](c-content-led/index.html) | 食记 issue 24 — editorial | Warm-neutral paper, serif-led, long-form reading. | paper `#F4F2ED`, ink `#191614`, oxblood `#7A2420` | Newsreader + Noto Serif SC + IBM Plex Sans + IBM Plex Mono | 4-column asymmetric essay grid |
+| [d-shift-console](d-shift-console/index.html) | 排班台 — shift scheduler | An instrument, not a dashboard: one shared 08:00–24:00 axis is the spine, so "who is on at 15:00" is read by vertical alignment rather than by comparing two timestamps. | stainless cool-neutral, jade accent, amber and brick for state | system CJK stack + monospace numerals | Time axis shared by every bar, the coverage strip, and the detail's day map |
 
-Note that all three use **different paper tones and different accents**, and the two warm-neutral pages
+Note that all four use **different paper tones and different accents**, and the two warm-neutral pages
 (a, c) diverge on radius, geometry, contrast, and motion mode. Four takes on warm cream would have been
 one direction, not four — the skill's Section 3 exists to prevent exactly that.
+
+`d-shift-console` is also the page that satisfies the responsive rule hardest to satisfy: the desktop
+three-pane console becomes a single full-width list on a phone, filters collapse behind a rendered 44px
+`筛选` control, and master-detail becomes a full-surface drill-in with a visible `返回`. No fixed sidebar
+survives at 390px.
 
 ## Verified results
 
 Measured in-browser at the stated viewports. The `390×844` column figures were re-measured at a genuine
 390px layout viewport after the screenshot-pipeline defect described under the cold transfer test.
 
-| Check | a-expressive | b-operational | c-content-led |
-| --- | --- | --- | --- |
-| Desktop 1440×900 | [PNG](shots/a-expressive-desktop-1440x900.png) | [PNG](shots/b-operational-desktop-1440x900.png) | [PNG](shots/c-content-led-desktop-1440x900.png) |
-| Mobile 390×844 | [PNG](shots/a-expressive-mobile-390x844.png) | [PNG](shots/b-operational-mobile-390x844.png) | [PNG](shots/c-content-led-mobile-390x844.png) |
-| Body measure (desktop) | — | — | 504px, 18px/35.1px, ~23.2 CJK chars/line |
-| Horizontal overflow @390 | 0px | 0px | 0px |
-| Document `scrollWidth` @390 | = viewport | = viewport | `390` |
-| Smallest rendered text @390 | — | — | 14px |
-| Smallest hit dimension @390 | ≥44px | ≥44px | 44px |
-| `transition: all` occurrences | 0 | 0 | 0 |
-| Focus ring | 2px + 2px offset | 2px + 2px offset | 2px `rgb(122,36,32)` + 2px offset |
+| Check | a-expressive | b-operational | c-content-led | d-shift-console |
+| --- | --- | --- | --- | --- |
+| Desktop 1440×900 | [PNG](shots/a-expressive-desktop-1440x900.png) | [PNG](shots/b-operational-desktop-1440x900.png) | [PNG](shots/c-content-led-desktop-1440x900.png) | [PNG](shots/d-shift-console-desktop-1440x900.png) |
+| Mobile 390×844 | [PNG](shots/a-expressive-mobile-390x844.png) | [PNG](shots/b-operational-mobile-390x844.png) | [PNG](shots/c-content-led-mobile-390x844.png) | [PNG](shots/d-shift-console-mobile-390x844.png) |
+| Body measure (desktop) | — | — | 504px, 18px/35.1px, ~23.2 CJK chars/line | — |
+| Horizontal overflow @390 | 0px | 0px | 0px | 0px |
+| Document `scrollWidth` @390 | = viewport | = viewport | `390` | `390` |
+| Smallest rendered text @390 | — | — | 14px | 12px (an axis tick) |
+| Smallest hit dimension @390 | ≥44px | ≥44px | 44px | 44px |
+| `transition: all` occurrences | 0 | 0 | 0 | 0 |
+| Focus ring | 2px + 2px offset | 2px + 2px offset | 2px `rgb(122,36,32)` + 2px offset | 2px + 2px offset |
 
 ## Defects found by looking at renders
 
@@ -61,8 +69,8 @@ opening the captured image or probing the live DOM:
 
 ## Cold transfer test
 
-The three pages above were built while the skill was being written, by agents that already knew where the
-work was heading. That is not a fair test of whether the skill *transfers*. So two further pages were
+The first three pages above were built while the skill was being written, by agents that already knew where
+the work was heading. That is not a fair test of whether the skill *transfers*. So three further pages were
 commissioned from agents that were given only `SKILL.md` and a brief, and were explicitly forbidden from
 reading this directory:
 
@@ -70,8 +78,9 @@ reading this directory:
 | --- | --- | --- |
 | Content-led | Landing page for 夜读, a personal reading journal. A brief that strongly invites the banned warm-editorial cluster. | **Passed.** Cool paper `#EDF1EF`, bottle-green accent `#0E5C4C`, 20 distinct hex values, **zero banned-color hits**. |
 | Operational | Main console for 风控台, a fintech risk-analyst tool with a queue, a detail panel, and analyst actions. | **Desktop strong, narrow width failed.** 39 distinct hex values, zero banned-color hits, genuinely dense and product-specific at `1440×900` — but see below. |
+| Responsive retest | Shift scheduler for 排班台, a three-pane console, run *after* the narrow-width rules were added. | **Passed, and it caught its own tooling.** See [d-shift-console](d-shift-console/index.html) above. |
 
-This is the most useful evidence in this directory, because both tests found something:
+This is the most useful evidence in this directory, because every test found something:
 
 **The ban list works.** Neither build reached for warm cream paper, terracotta, acid dark, or any other
 named default — not even the one whose brief made warm-editorial the natural choice. Naming specific
@@ -119,12 +128,36 @@ the three pages above were re-inspected at a genuine `390×844`. They pass.
 That is the same failure the skill warns about, one level up: the artifact existed, it was named correctly,
 and it was not what it claimed to be.
 
+**The rule then proved itself on a fresh agent.** A third agent was given the updated `SKILL.md`, a brief
+for a three-pane shift console, and nothing else. It walked into the same clamp — and caught itself,
+because the skill had told it to read the layout width back:
+
+> *"My first attempt to 'prove' this with a screenshot was wrong and I caught it only because I burned an
+> `innerWidth` readout into the page: Chrome clamped `--window-size=390,844` to a 500px window and wrote a
+> 390px crop of a 500px layout (status column cut off, `max-width:400px` never matched)."*
+
+It then built its own fixed-width iframe captures and reported `innerWidth=390 mq400=true`. The result,
+independently re-measured here: `VIEWPORT 390x844`, `horizontal overflow=0px`, list owns all `390px`,
+filters behind a rendered 44px control, detail a full-surface drill-in. It also found eleven defects,
+including one that no amount of looking would have caught — pressing Escape dismissed a destructive
+confirm but left `data-confirming="true"`, hiding every action control and dead-ending the panel.
+
+**The agent's criticism improved the tooling.** Three of its complaints about `measure.ps1` were correct
+and are fixed: it reported text inside `display:none` subtrees (it named a hidden 12px tally as the
+smallest rendered text); it measured an `18px` `<input>` rather than the `44px` `<label>` that is the real
+hit area; and a deliberately collapsed region and a broken one both printed `w=0 disp=none`. It now skips
+unrendered subtrees, resolves checkbox and radio inputs to their label, and labels each region
+`rendered` / `NOT RENDERED (display:none)` / `NOT RENDERED (an ancestor is display:none)` /
+`zero size WHILE VISIBLE - check this one`, and prints the list of regions absent from the initial state so
+each one can be checked for a trigger that actually opens it.
+
 **What the tests changed in the skill.** Section 8 gained three rules from this round — *"A narrow
 screenshot is not proof of a narrow layout"*, *"A container query cannot style its own container"*, and
 *"An overlay needs a trigger that is actually rendered"* — plus the Section 5 requirement to name which
 surface owns the phone viewport and the Product Interface Reference's instruction to treat the narrow
-master-detail case as a composition problem. The Section 2 ban list also gained pill-shaped buttons for
-ordinary actions, after the 夜读 landing page used them freely.
+master-detail case as a composition problem. The Hand Off checklist now requires stating the confirmed
+layout width for any narrow check. The Section 2 ban list also gained pill-shaped buttons for ordinary
+actions, after the 夜读 landing page used them freely.
 
 ## Reproducing the screenshots
 
@@ -144,9 +177,10 @@ implementation.
 
 `measure.ps1` answers the question a screenshot cannot: what did the browser actually lay out? It renders
 the page at a true fixed viewport width and reports `window.innerWidth`, horizontal overflow and the
-elements causing it, the computed box of every major region, the smallest rendered text, the smallest
-interactive dimension, and whether any element has an active `transition: all` — without producing or
-reading an image.
+elements causing it, the computed box and render state of every major region, which regions are absent
+from the current state, the smallest rendered text, the smallest interactive dimension (resolving
+checkboxes and radios to their labels), and whether any element has an active `transition: all` — without
+producing or reading an image.
 
 ```powershell
 pwsh -File measure.ps1 -Html c-content-led\index.html -Width 390 -Height 844
