@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>饭点食记 · 目录</title>
+<meta name="theme-color" content="#F4F2ED">
+<meta name="description" content="饭点食记，一份关于中国地方食物的长篇文章刊物。第二十四期目录与本期首篇《炒色记》。">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Noto+Serif+SC:wght@400;500&family=IBM+Plex+Sans:wght@400;500&display=swap">
+
+<style>
+/* =====================================================================
+   饭点食记 — Direction (written before coding, per make-ui-not-ai §3)
+   ---------------------------------------------------------------------
+   SURFACE CLASS
+     Content-led: reading, browsing, discovery. Density loose, motion
+     near-still, ornament structural only. No card kit, no ornament
+     beyond the grid itself.
+
+   EVIDENCE
+     Long-form Chinese food essays. Phone-on-a-commute and laptop-at-
+     night reading. CJK body text needs a measured column (~30-34
+     characters), a real serif, generous leading, and zero chrome noise.
+     A magazine contents page, not a feed.
+
+   PREMISE
+     A printed regional cookbook's index crossed with a magazine
+     contents spread: one strong editorial grid in which an asymmetric
+     right margin column carries reference notes — factual marginalia
+     (产地/器具/燃料/术语/民俗) and one cited source — beside the main
+     text, joined to it by a stub rule that crosses the gutter.
+
+   REJECTION
+     The warm-cream + high-contrast-display-serif editorial default
+     (§2.1) — a tracked-out cream page with a Playfair-style display
+     face and a terracotta accent. Refused entirely. The serif here is
+     a *reading* serif with an optical-size axis and deliberately
+     unbroadcast CJK-Latin pairing, and the one accent is a deep
+     oxblood, not a warm clay.
+
+   DIALS
+     expressiveness: low-medium (one memorable element: the margin)
+     density: loose, reading-first
+     contrast: strong ink-on-paper text contrast, quiet everything else
+     geometry: square; hairlines are structure, never decoration
+     motion: near-still — state changes only, no entrance animation
+             on cards, sections, or paragraphs
+
+   COMPOSITION
+     Container 1040px. One grid, reused by both views:
+       [ 592px text ] [ 24px..1fr channel ] [ 160..272px margin ]
+     The channel is where section marks hang and where the stub rules
+     from the margin column terminate. Below 1000px it collapses to a
+     single column and the marginalia becomes an inline, hairline-
+     bounded note set *after* its section — the responsive reprioritis-
+     ation is "evidence → after the claim", not a scaled screenshot.
+
+   TYPE ROLES
+     Latin reading voice + folios/dates : Newsreader (variable, opsz)
+     Chinese reading voice              : Noto Serif SC
+     meta, UI, controls                 : IBM Plex Sans
+     Latin-serif and CJK-serif are one *role* split by script; the sans
+     is the second and only other family. §6 allows 1-2 families.
+
+   COLOR ROLES
+     --paper   #F4F2ED   page
+     --paper-2 #EFEBE2   row hover wash only
+     --ink     #191614   body text, rules that rank
+     --accent  #7A2420   section marks, links, current state (8.99:1)
+     --rule    #DAD3C7   structural hairlines
+     --muted   #6B6258   meta (5.40:1)
+     3 base colors + 3 tints/shades. No terracotta, no amber, no
+     purple, no gradient washes.
+
+   REVERSIBLE IF DISPROVED
+     The 592px measure and the 272px margin width — both are single
+     tokens (--measure / --margin).
+   ===================================================================== */
+
+/* ---------- tokens ---------- */
+:root{
+  --paper:#F4F2ED;
+  --paper-2:#EFEBE2;
+  --ink:#191614;
+  --accent:#7A2420;
+  --rule:#DAD3C7;
+  --muted:#6B6258;
+
+  --font-serif:"Newsreader","Noto Serif SC","Source Han Serif SC","Songti SC","STSong","SimSun",serif;
+  --font-sans:"IBM Plex Sans","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",sans-serif;
+
+  /* type scale: 14 / 15 / 18 / 22 / 27 / 34 */
+  --t-2xs:14px;
+  --t-xs:15px;
+  --t-base:18px;
+  --t-md:22px;
+  --t-lg:27px;
+  --t-xl:34px;
+
+  --measure:504px;   /* 28 CJK characters at 18px — comfortable Chinese
+                        measure, and roughly 70 Latin characters, under
+                        the 80-character cap. Below 1020px it is dropped
+                        entirely: the single column takes the full width. */
+  --gutter:56px;     /* the channel where margin rules terminate */
+  --margin:272px;    /* marginalia column */
+  --slot:88px;       /* numeral / section-mark slot, shared by both views */
+  --page:920px;      /* slot + measure + gutter + margin, exactly */
+  --pad:20px;
+  --pull:clamp(22px, 2.11vw, 30px);   /* pull-quote size, 27px at 1280 */
+
+  --ease:cubic-bezier(0.2, 0, 0, 1);
+  --dur:150ms;
+  --radius:2px;
+
+  color-scheme:light;
+}
+
+/* Every property named explicitly — never `transition: all`. */
+*,*::before,*::after{ transition-property:none; }
+
+@media (min-width:560px){ .page{ --pad:32px; } }
+@media (min-width:1020px){ .page{ --pad:48px; } }
+@media (min-width:1280px){ .page{ --margin:336px; --page:984px; } }
+
+/* ---------- root ---------- */
+*,*::before,*::after{ box-sizing:border-box; }
+
+html{
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  -webkit-text-size-adjust:100%;
+  background:var(--paper);
+}
+
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--font-serif);
+  font-size:var(--t-base);
+  font-weight:400;
+  line-height:1.95;
+  letter-spacing:0;
+  font-optical-sizing:auto;
+}
+
+@media (max-width:560px){
+  body{ font-size:17px; }
+}
+
+p,li,dd,figcaption,dt,cite,.card__standfirst,.note__body{ text-wrap:pretty; }
+h1,h2,h3,.card__title,.essay__standfirst{ text-wrap:balance; }
+
+h1,h2,h3{ font-weight:500; margin:0; letter-spacing:0; }
+p{ margin:0; }
+dl,dd,dt,figure,blockquote{ margin:0; }
+ol{ margin:0; padding:0; list-style:none; }
+
+a{
+  color:var(--accent);
+  text-decoration:underline;
+  text-decoration-thickness:1px;
+  text-underline-offset:0.18em;
+  text-decoration-color:color-mix(in srgb, var(--accent) 40%, transparent);
+}
+a:hover{ text-decoration-color:var(--accent); }
+
+:where(a,button,[tabindex]):focus-visible{
+  outline:2px solid var(--accent);
+  outline-offset:2px;
+  border-radius:var(--radius);
+}
+
+.sr-only{
+  position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+  overflow:hidden; clip-path:inset(50%); white-space:nowrap; border:0;
+}
+
+/* non-interactive programmatic focus target */
+[tabindex="-1"]:focus{ outline:none; }
+[tabindex="-1"]:focus-visible{ outline:2px solid var(--accent); outline-offset:4px; }
+
+.page{
+  width:min(var(--page), 100% - var(--pad) * 2);
+  margin-inline:auto;
+}
+
+/* ---------- masthead ---------- */
+.site-header{
+  border-bottom:1px solid var(--rule);
+  background:var(--paper);
+}
+.site-header__inner{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:16px;
+  padding-block:8px;
+  min-height:64px;
+}
+.masthead{
+  display:inline-flex;
+  align-items:center;
+  min-height:44px;
+  font-family:var(--font-serif);
+  font-size:20px;
+  font-weight:500;
+  letter-spacing:0.02em;
+  color:var(--ink);
+  text-decoration:none;
+  padding-inline:8px;
+  margin-inline:-8px;
+  border-radius:var(--radius);
+  transition-property:background-color,scale;
+  transition-duration:var(--dur);
+  transition-timing-function:ease-out;
+}
+.masthead:hover{ background-color:var(--paper-2); }
+.masthead:active{ scale:0.96; }
+
+.hdr-meta{
+  font-family:var(--font-sans);
+  font-size:var(--t-2xs);
+  line-height:1.5;
+  color:var(--muted);
+  letter-spacing:0.01em;
+  text-align:right;
+}
+.runninghead{
+  display:inline-flex;
+  align-items:baseline;
+  gap:8px;
+  font-feature-settings:"tnum" 1;
+  font-variant-numeric:tabular-nums;
+}
+.runninghead__pos{ font-family:var(--font-serif); font-size:var(--t-xs); color:var(--ink); }
+@media (max-width:600px){ .runninghead__name{ display:none; } }
+
+/* ---------- views ---------- */
+.view[hidden]{ display:none; }
+main{ padding-bottom:96px; }
+
+@keyframes view-enter{
+  from{ opacity:0; transform:translateY(12px); filter:blur(4px); }
+  to{ opacity:1; transform:none; filter:blur(0); }
+}
+@media (prefers-reduced-motion: no-preference){
+  .view.is-entering{ animation:view-enter 300ms var(--ease) both; }
+}
+
+/* ---------- the grid, shared by index and article ----------
+   One template serves both views so the contents titles and the essay
+   title fall on the same vertical:
+
+     [ 88 numeral ] [ measure ] [ gutter ] [ margin ]
+
+   Below 1020px the template collapses to one column and every
+   right-hand marginal block becomes an inline note placed directly
+   after the text it annotates. That is the responsive re-prioritisation:
+   the evidence follows its claim instead of shrinking or disappearing. */
+.row{
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  align-items:start;
+}
+@media (min-width:1020px){
+  .row{
+    grid-template-columns:
+      88px
+      minmax(0,var(--measure))
+      var(--gutter)
+      minmax(0,var(--margin));
+  }
+  .col-text{ grid-column:2; }
+  .col-note{ grid-column:4; }
+  .col-wide{ grid-column:2 / 5; }
+}
+
+/* ---------- index: issue head ---------- */
+.index{ padding-top:56px; }
+.issue{
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  align-items:start;
+  padding-bottom:32px;
+  border-bottom:1px solid var(--ink);
+}
+@media (min-width:1020px){
+  .issue{
+    grid-template-columns:
+      var(--slot)
+      minmax(0,var(--measure))
+      var(--gutter)
+      minmax(0,var(--margin));
+  }
+  .issue > .issue__slot{ grid-column:1; }
+  .issue > .issue__title{ grid-column:2; }
+  .issue > .issue__meta{ grid-column:4; }
+}
+.issue__slot{
+  font-family:var(--font-sans);
+  font-size:var(--t-2xs);
+  color:var(--muted);
+  line-height:1.6;
+  padding-top:6px;
+}
+.issue__title h1{
+  font-size:var(--t-xl);
+  line-height:1.3;
+}
+.issue__standfirst{
+  margin-top:16px;
+  font-size:var(--t-base);
+  line-height:1.85;
+  color:var(--ink);
+}
+.issue__meta{
+  font-family:var(--font-sans);
+  font-size:var(--t-2xs);
+  line-height:1.9;
+  color:var(--muted);
+  font-variant-numeric:tabular-nums;
+  padding-top:10px;
+}
+
+/* ---------- index: contents ---------- */
+.contents{ margin-top:0; }
+
+.contents__item{ display:block; }
+
+.card{
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  gap:12px;
+  padding:24px 16px 28px;
+  margin-inline:-16px;
+  border-top:1px solid var(--rule);
+  color:var(--ink);
+  text-decoration:none;
+  border-radius:var(--radius);
+  transition-property:background-color;
+  transition-duration:var(--dur);
+  transition-timing-function:ease-out;
+}
+@media (min-width:1020px){
+  .card{
+    grid-template-columns:
+      var(--slot)
+      minmax(0,var(--measure))
+      var(--gutter)
+      minmax(0,var(--margin));
+    gap:0;
+    padding-inline:0;
+    margin-inline:0;
+  }
+  .card__slot{ grid-column:1; }
+  .card__main{ grid-column:2; }
+  .card__meta{ grid-column:4; }
+}
+}
+.card:hover{ background-color:var(--paper-2); }
+.card:active{ background-color:var(--paper-2); }
+/* stated deviation: ring drawn inside the row so it cannot collide with
+   the neighbouring row's hit area; 2px solid / 2px offset preserved in
+   weight, offset inverted for containment. */
+.card:focus-visible{ outline-offset:-2px; }
+
+.contents__item:first-child .card{ border-top:1px solid var(--ink); }
+.contents__item.is-current .card{ border-top-color:var(--accent); }
+
+.card__slot{
+  font-family:var(--font-serif);
+  font-size:20px;
+  font-weight:400;
+  line-height:1.2;
+  color:var(--muted);
+  font-variant-numeric:tabular-nums;
+  display:flex;
+  align-items:baseline;
+  flex-wrap:wrap;
+  gap:4px 8px;
+}
+@media (min-width:1020px){
+  .card__slot{ display:block; padding-top:4px; }
+  .card__no{ display:block; }
+  .card__flags{ display:block; margin-top:8px; }
+}
+.card__flags{ display:flex; flex-wrap:wrap; gap:4px 6px; }
+.flag{
+  font-family:var(--font-sans);
+  font-size:var(--t-2xs);
+  line-height:1.4;
+  letter-spacing:0;
+  padding:2px 6px;
+  border:1px solid currentColor;
+  border-radius:var(--radius);
+  white-space:nowrap;
+}
+.flag--lead{ color:var(--muted); }
+.flag--live{ color:var(--accent); display:inline-flex; align-items:center; gap:4px; }
+.flag--live::before{ content:""; width:4px; height:4px; background:var(--accent); }
+
+.card__title{
+  font-size:var(--t-md);
+  line-height:1.45;
+  letter-spacing:0;
+  text-decoration:underline;
+  text-decoration-color:transparent;
+  text-decoration-thickness:1px;
+  text-underline-offset:0.16em;
+  transition-property:text-decoration-color;
+  transition-duration:var(--dur);
+  transition-timing-function:ease-out;
+}
+.card:hover .card__title,
+.card:active .card__title,
+.card:focus-visible .card__title{ text-decoration-color:var(--accent); }
+
+.contents__item--lead .card__title{ font-size:var(--t-lg); line-height:1.38; }
+
+.card__standfirst{
+  margin-top:12px;
+  font-size:var(--t-base);
+  line-height:1.8;
+  color:var(--ink);
+}
+
+.card__meta{
+  display:flex;
+  flex-wrap:wrap;
+  gap:4px 12px;
+  margin-top:0;
+  font-family:var(--font-sans);
+  font-size:var(--t-2xs);
+  line-height:1.7;
+  color:var(--muted);
+  font-variant-numeric:tabular-nums;
+}
+.card__meta > span + span{
+  padding-left:12px;
+  border-left:1px solid var(--rule);
+}
+@media (min-width:1020px){
+  .card__meta{ display:block; padding-top:4px; }
+  .card__meta > span{ display:block; }
+  .card__meta > span + span{ padding-left:0; border-left:0; }
+}
+
+.contents__end{
+  padding-top:24px;
+  border-top:1px solid var(--rule);
+}
+
+/* ---------- article ---------- */
+.view__back{ padding-top:32px; }
+.back{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  min-height:44px;
+  padding-inline:8px;
+  margin-inline:-8px;
+  font-family:var(--font-sans);
+  font-size:var(--t-xs);
+  color:var(--accent);
+  text-decoration:none;
+  border-radius:var(--radius);
+  transition-property:background-color,scale;
+  transition-duration:var(--dur);
+  transition-timing-function:ease-out;
+}
+.back:hover{ background-color:var(--paper-2); }
+.back:active{ scale:0.96; }
+.back svg{ display:block; }
+
+.essay{ padding-top:32px; }
+.essay__head{ padding-bottom:32px; border-bottom:1px solid var(--ink); }
+.essay__kicker{
+  font-family:var(--font-sans);
+  font-size:var(--t-2xs);
+  color:var(--muted);
+  line-height:1.6;
+}
+.essay__rubric{ color:var(--ink); }
+@media (min-width:1020px){
+  /* the column name sits in the same slot the contents numerals use, so
+     the essay title and the index titles share one vertical */
+  .essay__head > .essay__kicker{ grid-column:1; grid-row:1; padding-top:10px; }
+  .essay__rubric{ display:block; margin-top:4px; }
+}
+.essay__head .essay__title{
+  margin-top:12px;
+  font-size:var(--t-xl);
+  line-height:1.3;
+}
+@media (max-width:560px){
+  .essay__head .essay__title, .issue__title h1{ font-size:var(--t-lg); line-height:1.34; }
+}
+.essay__standfirst{
+  margin-top:20px;
+  font-size:var(--t-base);
+  line-height:1.85;
+  color:var(--ink);
+}
+
+/* byline rendered as the first marginal block */
+.byline{
+  font-family:var(--font-sans);
+  font-size:var(--t-2xs);
+  line-height:1.6;
+  color:var(--muted);
+  font-variant-numeric:tabular-nums;
+  margin-top:24px;
+}
+@media (min-width:1020px){
+  .byline{ margin-top:6px; padding-top:0; }
+}
+.byline > div{ display:grid; grid-template-columns:3.4em minmax(0,1fr); gap:8px; }
+.byline dt{ text-align:justify; text-align-last:justify; }
+.byline dd{ color:var(--ink); }
+
+/* sections */
+.sec{ padding-top:56px; }
+.sec:first-of-type{ padding-top:48px; }
+.sec__text h2{
+  position:relative;
+  font-size:var(--t-md);
+  line-height:1.45;
+}
+.mark{
+  display:inline-block;
+  min-width:1.5em;
+  margin-right:0.25em;
+  color:var(--accent);
+  font-weight:500;
+}
+@media (min-width:1020px){
+  .mark{
+    position:absolute;
+    left:-1.7em;
+    top:0.08em;
+    margin:0;
+    min-width:0;
+  }
+}
+.sec__text h2 + p{ margin-top:16px; }
+.sec__text p + p{ margin-top:20px; }
+
+/* marginalia: reference notes in the right margin */
+.note{
+  margin-top:32px;
+  padding-top:16px;
+  border-top:1px solid var(--rule);
+  font-size:var(--t-xs);
+  line-height:1.85;
+}
+@media (min-width:1020px){
+  .note{
+    margin-top:4px;
+    padding-top:0;
+    border-top:0;
+  }
+}
+.note__head{
+  font-family:var(--font-sans);
+  font-size:var(--t-2xs);
+  line-height:1.5;
+  color:var(--ink);
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+}
+.note__head::before{
+  content:"";
+  width:16px;
+  height:1px;
+  background:var(--accent);
+  flex:none;
+}
+.facts{
+  margin-top:12px;
+  display:grid;
+  gap:4px;
+}
+@media (min-width:560px) and (max-width:1019px){
+  .facts{ grid-template-columns:max-content minmax(0,1fr); gap:4px 16px; }
+}
+.facts > div{ display:grid; grid-template-columns:3.4em minmax(0,1fr); gap:8px; }
+@media (min-width:560px) and (max-width:1019px){
+  .facts > div{ display:contents; }
+}
+.facts dt{
+  font-family:var(--font-sans);
+  font-size:var(--t-2xs);
+  color:var(--muted);
+  text-align:justify;
+  text-align-last:justify;
+  line-height:1.9;
+}
+.facts dd{ color:var(--ink); line-height:1.8; }
+
+.note__body{ margin-top:12px; }
+.note__body + .note__body{ margin-top:8px; }
+
+.cite{
+  margin-top:12px;
+  padding:12px 0;
+  border-top:1px solid var(--rule);
+  border-bottom:1px solid var(--rule);
+  font-size:var(--t-2xs);
+  line-height:1.85;
+  color:var(--ink);
+}
+.cite cite{
+  display:block;
+  margin-top:8px;
+  font-family:var(--font-sans);
+  font-style:normal;
+  font-size:var(--t-2xs);
+  color:var(--muted);
+  line-height:1.6;
+}
+
+/* pull quote — the one orchestrated moment */
+.pullquote{ padding-top:64px; }
+.pullquote blockquote{ max-width:30em; }
+.pullquote p{
+  font-size:var(--pull);
+  line-height:1.55;
+  font-weight:500;
+  letter-spacing:0;
+  max-width:22em;    /* ≈30 CJK chars — the intended break is held */
+}
+.pullquote cite{
+  display:block;
+  margin-top:16px;
+  font-family:var(--font-sans);
+  font-style:normal;
+  font-size:var(--t-2xs);
+  line-height:1.6;
+  color:var(--muted);
+}
+.pullquote blockquote{ border-top:1px solid var(--ink); padding-top:20px; }
+
+/* figure — honest dimensioned placeholder, no drawn illustration */
+.figure{ padding-top:64px; }
+.ph{
+  aspect-ratio:3 / 2;
+  border:1px solid var(--rule);
+  background-color:var(--paper-2);
+  background-image:repeating-linear-gradient(
+    45deg,
+    rgba(25,22,20,0.055) 0 1px,
+    rgba(25,22,20,0) 1px 8px
+  );
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-end;
+  gap:4px;
+  padding:16px;
+}
+@media (min-width:560px){
+  .ph{ padding:24px; }
+}
+.ph__label{
+  font-family:var(--font-sans);
+  font-size:var(--t-2xs);
+  font-weight:500;
+  color:var(--ink);
+  line-height:1.5;
+}
+.ph__spec,
+.ph__desc{
+  font-family:var(--font-sans);
+  font-size:var(--t-2xs);
+  color:var(--muted);
+  line-height:1.6;
+}
+.ph__desc{ max-width:34em; }
+.figure figcaption{
+  margin-top:12px;
+  font-family:var(--font-sans);
+  font-size:var(--t-2xs);
+  line-height:1.75;
+  color:var(--muted);
+}
+
+/* end of article */
+.essay__end{
+  margin-top:64px;
+  padding-top:24px;
+  border-top:1px solid var(--ink);
+}
+.essay__end .note__head::before{ background:var(--muted); }
+.essay__end .note__head{ color:var(--muted); }
+.essay__end p{
+  margin-top:12px;
+  font-size:var(--t-xs);
+  line-height:1.85;
+  color:var(--muted);
+}
+.essay__end .flag--live{ color:var(--muted); }
+.essay__end .flag--live::before{ background:var(--muted); }
+
+/* coming state */
+.coming{ padding-top:32px; }
+.coming h1{
+  margin-top:12px;
+  font-size:var(--t-xl);
+  line-height:1.3;
+  color:var(--ink);
+}
+.coming__standfirst{
+  margin-top:20px;
+  font-size:var(--t-base);
+  line-height:1.85;
+}
+.coming__panel{
+  margin-top:32px;
+  padding-top:16px;
+  border-top:1px solid var(--rule);
+  font-size:var(--t-xs);
+  line-height:1.85;
+  color:var(--muted);
+}
+.coming__panel .flag{ margin-right:8px; }
+.coming__actions{ margin-top:24px; display:flex; flex-wrap:wrap; gap:16px; }
+.btn{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  min-height:44px;
+  padding:0 16px;
+  font-family:var(--font-sans);
+  font-size:var(--t-xs);
+  color:var(--accent);
+  background:transparent;
+  border:1px solid var(--rule);
+  border-radius:var(--radius);
+  text-decoration:none;
+  cursor:pointer;
+  transition-property:background-color,border-color,scale;
+  transition-duration:var(--dur);
+  transition-timing-function:ease-out;
+}
+.btn:hover{ background-color:var(--paper-2); border-color:var(--muted); }
+.btn:active{ scale:0.96; }
+
+/* ---------- motion guard ---------- */
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{
+    transition-duration:1ms !important;
+    animation-duration:1ms !important;
+    animation-iteration-count:1 !important;
+    scroll-behavior:auto !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="page site-header__inner">
+    <a class="masthead" href="#/" id="masthead">饭点食记</a>
+    <p class="hdr-meta">
+      <span data-hdr="index">第二十四期　2024 年 11 月</span>
+      <span class="runninghead" data-hdr="article" hidden>
+        <span class="sr-only">阅读位置</span>
+        <span class="runninghead__name" data-running-name></span>
+        <span class="runninghead__pos" data-running-pos>一 / 六</span>
+      </span>
+    </p>
+  </div>
+</header>
+
+<main id="main" class="page">
+
+  <!-- ================= INDEX ================= -->
+  <section class="view" id="view-index" aria-labelledby="index-title">
+
+    <div class="issue">
+      <p class="issue__slot">第二十四期</p>
+      <div class="issue__title">
+        <h1 id="index-title" class="issue__title-h">目录</h1>
+        <p class="issue__standfirst">本期收六篇。前五篇写一条河：赤水河从云南镇雄流出来，穿过黔北的峡谷，在川南汇入长江，两岸的人吃什么、怎么烧、怎么叫那道菜。第六篇走得更远一些，到了海边的盐场。</p>
+      </div>
+      <p class="issue__meta">2024 年 11 月<br>共六篇<br>已刊一篇</p>
+    </div>
+
+    <ol class="contents">
+
+      <li class="contents__item contents__item--lead">
+        <a class="card" href="#/essay/chaose-ji" data-essay="chaose-ji"
+           data-title="炒色记：川南一锅柏枝红烧，与灶上不能离人的四十分钟"
+           data-standfirst="合江人做红烧肉，不讲烧，讲炒色。糖化开的那几十秒，决定整锅的成败。">
+          <span class="card__slot">
+            <span class="card__no" aria-hidden="true">01</span>
+            <span class="card__flags">
+              <span class="flag flag--lead">首篇</span>
+              <span class="flag flag--live" data-current-badge hidden>正在阅读</span>
+            </span>
+          </span>
+          <span class="card__main">
+            <span class="card__title">炒色记：川南一锅柏枝红烧，与灶上不能离人的四十分钟</span>
+            <span class="card__standfirst">合江人做红烧肉，不讲烧，讲炒色。糖化开的那几十秒，决定整锅的成败。灶房里还留着一条烧了三十年的老规矩：火要人守。</span>
+          </span>
+          <span class="card__meta">
+            <span>川南 赤水河</span>
+            <span>陈晓岚</span>
+            <span>2024 年 11 月 18 日</span>
+            <span>全文约两千字</span>
+          </span>
+        </a>
+      </li>
+
+      <li class="contents__item">
+        <a class="card" href="#/essay/diaoguo" data-essay="diaoguo"
+           data-title="吊锅慢：一灶柴火里的川黔边界"
+           data-standfirst="同一个灶膛，青冈木管底火，柏枝管香气。火候在河里，不在秤上。">
+          <span class="card__slot">
+            <span class="card__no" aria-hidden="true">02</span>
+            <span class="card__flags">
+              <span class="flag flag--live" data-current-badge hidden>正在阅读</span>
+            </span>
+          </span>
+          <span class="card__main">
+            <span class="card__title">吊锅慢：一灶柴火里的川黔边界</span>
+            <span class="card__standfirst">同一个灶膛，青冈木管底火，柏枝管香气。火候在河里，不在秤上。</span>
+          </span>
+          <span class="card__meta">
+            <span>黔北 赤水</span>
+            <span>陈晓岚</span>
+            <span>2024 年 10 月 29 日</span>
+            <span>全文约两千四百字</span>
+          </span>
+        </a>
+      </li>
+
+      <li class="contents__item">
+        <a class="card" href="#/essay/shaitang" data-essay="shaitang"
+           data-title="晒场上的七日：二郎滩以上的一片辣椒"
+           data-standfirst="不用烘房，就摊在院坝的竹席上，让河风慢慢带走水分。">
+          <span class="card__slot">
+            <span class="card__no" aria-hidden="true">03</span>
+            <span class="card__flags">
+              <span class="flag flag--live" data-current-badge hidden>正在阅读</span>
+            </span>
+          </span>
+          <span class="card__main">
+            <span class="card__title">晒场上的七日：二郎滩以上的一片辣椒</span>
+            <span class="card__standfirst">不用烘房，就摊在院坝的竹席上，让河风慢慢带走水分。晒足七天，壳脆而籽不碎。</span>
+          </span>
+          <span class="card__meta">
+            <span>川南 古蔺</span>
+            <span>周慕青</span>
+            <span>2024 年 10 月 12 日</span>
+            <span>全文约一千八百字</span>
+          </span>
+        </a>
+      </li>
+
+      <li class="contents__item">
+        <a class="card" href="#/essay/fangyan" data-essay="fangyan"
+           data-title="灶上老话：炒色、收汤、翻身不翻皮"
+           data-standfirst="有几句词，出了这一带就没人懂了。它们大多只活在灶台边上。">
+          <span class="card__slot">
+            <span class="card__no" aria-hidden="true">04</span>
+            <span class="card__flags">
+              <span class="flag flag--live" data-current-badge hidden>正在阅读</span>
+            </span>
+          </span>
+          <span class="card__main">
+            <span class="card__title">灶上老话：炒色、收汤、翻身不翻皮</span>
+            <span class="card__standfirst">有几句词，出了这一带就没人懂了。它们大多只活在灶台边上，写完菜谱就没了出处。</span>
+          </span>
+          <span class="card__meta">
+            <span>川南 黔北</span>
+            <span>陈晓岚</span>
+            <span>2024 年 9 月 20 日</span>
+            <span>全文约一千六百字</span>
+          </span>
+        </a>
+      </li>
+
+      <li class="contents__item">
+        <a class="card" href="#/essay/zheyanwan" data-essay="zheyanwan"
+           data-title="折沿碗：土窑、八块、皮朝上"
+           data-standfirst="一只碗的口径、深浅与折沿，决定了这锅肉摆上桌时是什么样子。">
+          <span class="card__slot">
+            <span class="card__no" aria-hidden="true">05</span>
+            <span class="card__flags">
+              <span class="flag flag--live" data-current-badge hidden>正在阅读</span>
+            </span>
+          </span>
+          <span class="card__main">
+            <span class="card__title">折沿碗：土窑、八块、皮朝上</span>
+            <span class="card__standfirst">一只碗的口径、深浅与折沿，决定了这锅肉摆上桌时是什么样子。席面正中那一格，归谁摆也有讲究。</span>
+          </span>
+          <span class="card__meta">
+            <span>川南 合江</span>
+            <span>周慕青</span>
+            <span>2024 年 9 月 3 日</span>
+            <span>全文约一千五百字</span>
+          </span>
+        </a>
+      </li>
+
+      <li class="contents__item">
+        <a class="card" href="#/essay/yanchang" data-essay="yanchang"
+           data-title="盐场以南：自贡井灶边的一碗清汤"
+           data-standfirst="离开赤水河，往西是自贡的盐场。烧盐的人吃什么，和盐有很大关系。">
+          <span class="card__slot">
+            <span class="card__no" aria-hidden="true">06</span>
+            <span class="card__flags">
+              <span class="flag flag--live" data-current-badge hidden>正在阅读</span>
+            </span>
+          </span>
+          <span class="card__main">
+            <span class="card__title">盐场以南：自贡井灶边的一碗清汤</span>
+            <span class="card__standfirst">离开赤水河，往西是自贡的盐场。烧盐的人吃什么，和盐有很大关系。</span>
+          </span>
+          <span class="card__meta">
+            <span>川南 自贡</span>
+            <span>蒋和风</span>
+            <span>2024 年 8 月 21 日</span>
+            <span>全文约两千一百字</span>
+          </span>
+        </a>
+      </li>
+
+    </ol>
+
+    <p class="contents__end issue__slot">
+      第二十五期将于 2025 年 1 月出刊，主题是「腌缸」。目前收录四篇。
+    </p>
+
+  </section>
+
+  <!-- ================= ARTICLE ================= -->
+  <section class="view" id="view-article" hidden>
+
+    <div class="view__back">
+      <a class="back" href="#/" id="back-1">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M15 5l-7 7 7 7"/>
+        </svg>
+        回到目录
+      </a>
+    </div>
+
+    <!-- Unpublished / unknown slug: a graceful end, not an error page. -->
+    <div id="essay-coming" class="coming" hidden>
+      <h1 id="coming-title" class="coming__title" tabindex="-1" data-coming-title>篇目</h1>
+      <p class="coming__standfirst" data-coming-standfirst></p>
+      <div class="coming__panel">
+        <p><span class="flag flag--live">正在校订</span></p>
+        <p data-coming-note>这篇的手稿刚交回编辑部，还在核对产地、人名与引文出处。校订完成后刊出，篇目与标题以出刊为准。</p>
+        <p>本期已刊出的是首篇《炒色记》，可以先去读那一篇。</p>
+      </div>
+      <div class="coming__actions">
+        <a class="btn" href="#/">回到目录</a>
+        <a class="btn" href="#/essay/chaose-ji">读本期首篇</a>
+      </div>
+    </div>
+
+    <div id="essay-published">
+      <article class="essay">
+
+        <header class="essay__head row">
+          <p class="essay__kicker">栏目<span class="essay__rubric">川南食记</span></p>
+          <div class="col-text">
+            <h1 id="essay-title" class="essay__title" tabindex="-1">炒色记：川南一锅柏枝红烧，与灶上不能离人的四十分钟</h1>
+            <p class="essay__standfirst">合江人做红烧肉，不讲烧，讲炒色。糖在锅里化开的那几十秒，决定整锅的成败。灶房里还留着一条说了三十年的老规矩：火要人守。</p>
+          </div>
+          <dl class="byline col-note">
+            <div><dt>作者</dt><dd>陈晓岚</dd></div>
+            <div><dt>日期</dt><dd><time datetime="2024-11-18">2024 年 11 月 18 日</time></dd></div>
+            <div><dt>采访</dt><dd>2024 年 10 月，合江石盘滩</dd></div>
+            <div><dt>字数</dt><dd>约两千字</dd></div>
+          </dl>
+        </header>
+
+        <div class="row" style="padding-top:32px">
+          <div class="col-text">
+            <p>从泸州往南，公路一直贴着赤水河走，对岸就是黔北。车过石盘滩，天光矮下来，河面上浮着一层白气。陈明贵家的灶房在坡上，门朝河开。进屋先看见的是一口生铁吊锅，锅底磨得发亮，像一块被水冲了很多年的石头。</p>
+          </div>
+        </div>
+
+        <!-- 一 -->
+        <section class="sec row" id="s-1" aria-labelledby="h-1">
+          <div class="sec__text col-text">
+            <h2 id="h-1"><span class="mark" aria-hidden="true">一</span>火候</h2>
+            <p>合江人做红烧肉，不讲「烧」，讲「炒色」。五花肉切三指宽，冷水下锅，只放姜与花椒，煮到筷子能戳透就捞起来，摊在筲箕里晾着。真正的功夫全在下一步：锅里留一点底油，下一把土冰糖，火要小，铲子不能停，一直走到糖化成琥珀色的泡，再把肉倒回去。</p>
+            <p>这一步只有几十秒的余地。早一分，甜味压过酱香，肉吃起来发腻；晚一分，整锅就是苦的，救不回来。陈明贵炒色的时候几乎不出声，眼睛盯着锅底看。</p>
+            <p>他说糖色转深的那一下，锅里的声音会先变——从「滋滋」变成细一些的「沙沙」。等它变了，就得离火。</p>
+          </div>
+          <aside class="note col-note" aria-labelledby="n-1">
+            <p class="note__head" id="n-1">料理法</p>
+            <dl class="facts">
+              <div><dt>主料</dt><dd>三线五花，切三指宽</dd></div>
+              <div><dt>关键</dt><dd>糖色转成琥珀色即离火，不可迟疑</dd></div>
+              <div><dt>次序</dt><dd>先白煮去腥，再回锅炒色</dd></div>
+            </dl>
+            <p class="note__body">炒色这一步不进菜谱，因为写不出「几十秒」。当地的说法是：看泡不看钟。</p>
+          </aside>
+        </section>
+
+        <!-- 二 -->
+        <section class="sec row" id="s-2" aria-labelledby="h-2">
+          <div class="sec__text col-text">
+            <h2 id="h-2"><span class="mark" aria-hidden="true">二</span>灶房</h2>
+            <p>灶是老式的柴灶，青砖砌的，灶膛比寻常人家大出一圈。燃料分两样用：青冈木烧底火，稳，耐烧；柏枝管香气，只在收汁前添一小把。柏枝不能多，多了发苦，像烧过头的香。</p>
+            <p>灶房后墙留了一个方孔排烟，当地人叫「烟眼」。烟眼的位置有讲究，要正对着河风吹来的方向，否则屋里坐不住人。冬天烧一锅肉，烟眼的缝里会渗出白气；从坡下望上去，就知道谁家今天动了灶。</p>
+          </div>
+          <aside class="note col-note" aria-labelledby="n-2">
+            <p class="note__head" id="n-2">灶房</p>
+            <dl class="facts">
+              <div><dt>器具</dt><dd>生铁吊锅，锅底厚约一厘米</dd></div>
+              <div><dt>燃料</dt><dd>青冈木作底火，柏枝收尾增香</dd></div>
+              <div><dt>场所</dt><dd>后墙留一孔排烟，称「烟眼」，正对河风</dd></div>
+            </dl>
+            <p class="note__body">吊锅比平底锅受热慢，也退热慢。这一带的灶上，慢不是缺点，是条件。</p>
+          </aside>
+        </section>
+
+        <!-- pull quote -->
+        <div class="pullquote row">
+          <blockquote class="col-wide">
+            <p>火要人守。我娘在的时候，从不让人替她看火。</p>
+            <cite>陈明贵，四十七岁，合江石盘滩，2024 年 10 月</cite>
+          </blockquote>
+        </div>
+
+        <!-- 三 -->
+        <section class="sec row" id="s-3" aria-labelledby="h-3">
+          <div class="sec__text col-text">
+            <h2 id="h-3"><span class="mark" aria-hidden="true">三</span>食材</h2>
+            <p>辣椒是本地的圆颗椒，皮厚，籽少，晒干之后仍带一点果香。石盘滩往上，赤水河左岸那一片缓坡，日照足，土里带沙，种出来的椒辣得干净，不烧喉咙。</p>
+            <p>晒椒的法子也特别：不用烘房，就那么摊在院坝的竹席上，让河风慢慢带走水分。晒足七天，颜色从鲜红转成暗红，用手一捏，壳脆而籽不碎。</p>
+            <p>陈明贵种椒十余年。他家的晒场就在院坝里，靠河一面不设任何挡风的东西，说是「风挡了，椒就没那个味道」。这话没有道理可讲，但那一带的椒农大多这么讲。</p>
+          </div>
+          <aside class="note col-note" aria-labelledby="n-3">
+            <p class="note__head" id="n-3">产地与引文</p>
+            <dl class="facts">
+              <div><dt>产地</dt><dd>赤水河左岸缓坡，土质带沙</dd></div>
+              <div><dt>品种</dt><dd>本地圆颗椒，皮厚籽少</dd></div>
+              <div><dt>时令</dt><dd>处暑后采摘，院坝摊晒七日</dd></div>
+              <div><dt>人物</dt><dd>陈明贵，四十七岁，种椒十余年</dd></div>
+            </dl>
+            <blockquote class="cite">
+              <p>河谷一带晒椒不用烘房，就竹席摊于院坝，借河风收水。七日而壳脆，色转暗红，谓之上色。</p>
+              <cite>——《川南黔北饮食志》饮食民俗卷，1987 年内部铅印本，第 214 页</cite>
+            </blockquote>
+            <p class="note__body"><span class="flag flag--live">引文核对中</span></p>
+            <p class="note__body">此条引自八十年代的一份内部资料，其中「上色」这个说法在今天的石盘滩已少有人用。文中其余部分来自实地访谈，未被这段引文支持。</p>
+          </aside>
+        </section>
+
+        <!-- 四 -->
+        <section class="sec row" id="s-4" aria-labelledby="h-4">
+          <div class="sec__text col-text">
+            <h2 id="h-4"><span class="mark" aria-hidden="true">四</span>方言</h2>
+            <p>灶上有几句老话，出了这一带就没人懂了。「炒色」在某些村子也说成「炒糖」；「收汁」本地叫「收汤」；肉在锅里翻身的那个动作，叫「翻身不翻皮」——翻的是肉，皮要一直朝上。</p>
+            <p>最要紧的一句是「火要人守」，意思是灶上不能离人。去接个电话的工夫，一锅肉就可能过头。这句话在这一带说了很多年，说到已经不像一句劝告，而像灶房的一部分。</p>
+          </div>
+          <aside class="note col-note" aria-labelledby="n-4">
+            <p class="note__head" id="n-4">灶上术语</p>
+            <dl class="facts">
+              <div><dt>炒色</dt><dd>亦称「炒糖」，指炒糖上色这一步</dd></div>
+              <div><dt>收汤</dt><dd>普通话称收汁</dd></div>
+              <div><dt>翻身</dt><dd>「翻身不翻皮」，翻肉而皮朝上</dd></div>
+              <div><dt>火要人守</dt><dd>灶上不可离人</dd></div>
+            </dl>
+            <p class="note__body">这些词只在灶台边说，不进菜谱。菜谱写「炒糖色」，本地人听了要愣一下。</p>
+          </aside>
+        </section>
+
+        <!-- 五 -->
+        <section class="sec row" id="s-5" aria-labelledby="h-5">
+          <div class="sec__text col-text">
+            <h2 id="h-5"><span class="mark" aria-hidden="true">五</span>摆法</h2>
+            <p>起锅之前撒一点点盐，不放味精，也不勾芡。装碗用本地土窑烧的折沿碗，口径约一掌，比外头的浅。每碗八块，皮朝上，垫底的是冬笋和干萝卜。</p>
+            <p>冬笋吸油，萝卜回甜。吃到后半碗，垫底的东西往往比肉先没了。讲究一点的席面，红烧肉要摆在正中的那一格——不是因为它贵，是因为它压得住，旁边几碗清淡的都得靠它把味道立起来。</p>
+          </div>
+          <aside class="note col-note" aria-labelledby="n-5">
+            <p class="note__head" id="n-5">摆法</p>
+            <dl class="facts">
+              <div><dt>器具</dt><dd>本地土窑折沿碗，口径约一掌</dd></div>
+              <div><dt>摆法</dt><dd>每碗八块，皮朝上</dd></div>
+              <div><dt>垫底</dt><dd>冬笋与干萝卜，吸油回甜</dd></div>
+              <div><dt>忌</dt><dd>不勾芡，不放味精</dd></div>
+            </dl>
+          </aside>
+        </section>
+
+        <!-- figure -->
+        <figure class="figure row">
+          <div class="ph col-wide" role="img" aria-label="此处留待一幅横幅现场照片：青砖灶膛、生铁吊锅，灶边放着一小把柏枝">
+            <p class="ph__label" aria-hidden="true">留待现场照片</p>
+            <p class="ph__spec" aria-hidden="true">横幅 3:2　768 × 512</p>
+            <p class="ph__desc" aria-hidden="true">画面：青砖灶膛、生铁吊锅、灶边一小把柏枝，河风从烟眼进来</p>
+          </div>
+          <figcaption class="col-text">灶房后墙的烟眼，冬至前后。此处为尺寸占位，正式出版时替换为现场照片；图注与被摄者姓名将在刊印前补齐。</figcaption>
+        </figure>
+
+        <!-- 六 -->
+        <section class="sec row" id="s-6" aria-labelledby="h-6">
+          <div class="sec__text col-text">
+            <h2 id="h-6"><span class="mark" aria-hidden="true">六</span>年猪</h2>
+            <p>腊月里杀年猪，是这一带全年最热闹的事。杀完不卖，先请帮忙的邻里吃一顿，叫「吃刨汤」。第一锅红烧肉要分出去，拣几碗送到族中长辈家里，用粗布盖着，怕凉了。</p>
+            <p>除夕的年夜饭，红烧肉必须上，而且要摆在正中。孩子们通常等不到那时候——他们守在灶边，等的就是炒色时那一把糖化开的味道。</p>
+            <p>陈明贵说，现在的孩子嘴刁了，红烧肉太肥，常剩下半碗。但年夜饭那一碗，他每年照做，一块不减。</p>
+          </div>
+          <aside class="note col-note" aria-labelledby="n-6">
+            <p class="note__head" id="n-6">民俗</p>
+            <dl class="facts">
+              <div><dt>杀猪</dt><dd>腊月杀年猪，先请邻里吃「刨汤」</dd></div>
+              <div><dt>分赠</dt><dd>第一锅拣几碗，送族中长辈</dd></div>
+              <div><dt>场合</dt><dd>除夕年夜饭，摆在正中一格</dd></div>
+              <div><dt>余话</dt><dd>剩汤回锅，第二日下面</dd></div>
+            </dl>
+          </aside>
+        </section>
+
+        <div class="essay__end row">
+          <div class="col-text">
+            <p class="note__head">篇末附记</p>
+            <p>本篇资料由作者于 2024 年 10 月在合江、赤水一带采访整理。应受访者要求，文中人名已作处理；除边注明示的引文外，叙述均出自实地访谈，未标注来源的数字一律未采用。</p>
+            <p><span class="flag flag--live">本期其余五篇正在校订</span></p>
+            <p>第二十五期主题为「腌缸」，预计 2025 年 1 月出刊。回目录可见已定篇目。</p>
+            <div class="coming__actions">
+              <a class="btn" href="#/">回到目录</a>
+            </div>
+          </div>
+        </div>
+
+      </article>
+    </div>
+
+  </section>
+
+</main>
+
+<script>
+(function () {
+  'use strict';
+
+  var PUBLISHED = 'chaose-ji';
+
+  var viewIndex = document.getElementById('view-index');
+  var viewArticle = document.getElementById('view-article');
+  var publishedBlock = document.getElementById('essay-published');
+  var comingBlock = document.getElementById('essay-coming');
+  var comingTitle = comingBlock.querySelector('[data-coming-title]');
+  var comingStandfirst = comingBlock.querySelector('[data-coming-standfirst]');
+  var comingNote = comingBlock.querySelector('[data-coming-note]');
+
+  var cards = Array.prototype.slice.call(document.querySelectorAll('[data-essay]'));
+  var hdrIndex = document.querySelector('[data-hdr="index"]');
+  var hdrArticle = document.querySelector('[data-hdr="article"]');
+  var runningName = document.querySelector('[data-running-name]');
+  var runningPos = document.querySelector('[data-running-pos]');
+
+  var headings = Array.prototype.slice.call(document.querySelectorAll('.sec__text h2'));
+  var numerals = ['一', '二', '三', '四', '五', '六', '七', '八'];
+
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var firstRender = true;
+  var rafId = 0;
+
+  function route() {
+    var hash = location.hash || '#/';
+    var m = hash.match(/^#\/essay\/([a-z0-9-]+)$/i);
+    if (m) return { view: 'article', slug: m[1].toLowerCase() };
+    return { view: 'index', slug: null };
+  }
+
+  function cardFor(slug) {
+    for (var i = 0; i < cards.length; i++) {
+      if (cards[i].dataset.essay === slug) return cards[i];
+    }
+    return null;
+  }
+
+  function setRunningHead() {
+    if (viewArticle.hidden) return;
+    if (publishedBlock.hidden) return;
+    var offset = 0;
+    for (var i = 0; i < headings.length; i++) {
+      if (headings[i].getBoundingClientRect().top <= 96) offset = i;
+    }
+    var label = headings[offset] ? headings[offset].textContent.trim() : '';
+    runningName.textContent = label;
+    runningPos.textContent = numerals[offset] + ' / ' + numerals[headings.length - 1];
+  }
+
+  function onScroll() {
+    if (rafId) return;
+    rafId = window.requestAnimationFrame(function () {
+      rafId = 0;
+      setRunningHead();
+    });
+  }
+
+  function render() {
+    var r = route();
+    var isArticle = r.view === 'article';
+
+    viewIndex.hidden = isArticle;
+    viewArticle.hidden = !isArticle;
+
+    cards.forEach(function (card) {
+      var li = card.closest('.contents__item');
+      var current = isArticle && card.dataset.essay === r.slug;
+      li.classList.toggle('is-current', current);
+      var badge = card.querySelector('[data-current-badge]');
+      if (badge) badge.hidden = !current;
+      if (current) card.setAttribute('aria-current', 'true');
+      else card.removeAttribute('aria-current');
+    });
+
+    hdrIndex.hidden = isArticle;
+    hdrArticle.hidden = !isArticle;
+
+    if (isArticle) {
+      var card = cardFor(r.slug);
+      var isPublished = r.slug === PUBLISHED;
+      publishedBlock.hidden = !isPublished;
+      comingBlock.hidden = isPublished;
+
+      if (isPublished) {
+        document.title = '炒色记 · 饭点食记';
+        setRunningHead();
+      } else if (card) {
+        comingTitle.textContent = card.dataset.title;
+        comingStandfirst.textContent = card.dataset.standfirst;
+        comingNote.textContent = '这篇的手稿刚交回编辑部，还在核对产地、人名与引文出处。校订完成后刊出，篇目与标题以出刊为准。';
+        document.title = card.dataset.title + ' · 饭点食记';
+      } else {
+        /* Link that no longer resolves — say so plainly, do not pretend. */
+        comingTitle.textContent = '这个链接没有对应的篇目';
+        comingStandfirst.textContent = '目录里没有这一篇。可能是链接抄漏了字，也可能这篇已经撤下。';
+        comingNote.textContent = '从目录重新选一篇，或者直接读本期首篇《炒色记》。';
+        document.title = '找不到篇目 · 饭点食记';
+      }
+
+      var focusTarget = isPublished
+        ? document.querySelector('#essay-published #essay-title')
+        : comingTitle;
+      if (focusTarget) focusTarget.focus({ preventScroll: true });
+    } else {
+      document.title = '饭点食记 · 目录';
+    }
+
+    window.scrollTo(0, 0);
+
+    if (!firstRender && !reduceMotion.matches) {
+      var shown = isArticle ? viewArticle : viewIndex;
+      shown.classList.remove('is-entering');
+      void shown.offsetWidth;
+      shown.classList.add('is-entering');
+      shown.addEventListener('animationend', function handler() {
+        shown.classList.remove('is-entering');
+        shown.removeEventListener('animationend', handler);
+      });
+    }
+    firstRender = false;
+  }
+
+  window.addEventListener('hashchange', render);
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') return;
+    if (route().view !== 'article') return;
+    location.hash = '#/';
+  });
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll);
+
+  render();
+})();
+</script>
+</body>
+</html>

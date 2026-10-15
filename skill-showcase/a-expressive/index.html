@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>饭点 — 六点四十了，还没想好吃什么？</title>
+<meta name="description" content="饭点：双井附近的晚饭决定器。三分钟内替你出票，定好店、定好菜、给你一个取号。">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700;900&display=swap">
+
+<style>
+/* ============================================================
+   饭点 / FanDian — direction (written before code, per skill §3)
+
+   PREMISE   A dinner decision is a ticket you have already been
+             handed. The surface borrows the vernacular of Chinese
+             street-food ordering: the paper ticket, the hand stamp,
+             the queue number, the menu board. Not a SaaS card grid.
+
+   PALETTE   Committed COOL. paper #F7F7F4 base, ink #14161A anchor,
+             signal red #E4341F for exactly ONE role (the stamp mark
+             of the primary action), deep jade #0F4D3A for structure.
+             No cream, no terracotta, no purple, no amber, no gradients.
+
+   TYPE      display: Anton (heavy condensed signage) falling through
+             to Noto Sans SC 900 for CJK. body: Noto Sans SC.
+             numeric: IBM Plex Mono for prices, times, queue numbers.
+             (3 families, not 2 — CJK coverage forces one; noted in handoff.)
+
+   GEOMETRY  0–2px radius, 4px outer for the one nested pair.
+             Hairlines and dotted leaders are structural.
+
+   DENSITY   loose hero, tight listings, 4px spacing base.
+
+   MOTION    quiet. ONE orchestrated entrance (the ticket's 3 chunks,
+             100ms stagger). The stamp press is interaction feedback,
+             not a section entrance. prefers-reduced-motion neutralizes
+             durations, keeping every static cue.
+
+   DISTINCTIVE MOVE  the rubber stamp landing on the ticket — rotated,
+             red, the only red on the page.
+   ============================================================ */
+
+:root{
+  /* palette — 4 colors + tints */
+  --paper:#F7F7F4;
+  --paper-raise:#FCFCFA;
+  --paper-sunk:#EDEDE6;
+  --ink:#14161A;
+  --ink-muted:#5C6167;
+  --rule:#D5D5CD;
+  --jade:#0F4D3A;
+  --jade-tint:#E4EBE6;
+  --red:#E4341F;          /* the mark — 3:1+ on paper, used for the big stamp text */
+  --red-ink:#A32413;      /* same hue, darkened to clear 4.5:1 at 12px */
+
+  /* type */
+  --font-display:"Anton","Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+  --font-body:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  --font-mono:"IBM Plex Mono","Noto Sans SC",ui-monospace,monospace;
+
+  --fs-12:12px; --fs-13:13px; --fs-14:14px; --fs-16:16px; --fs-18:18px;
+  --fs-20:20px; --fs-26:26px; --fs-34:34px; --fs-46:46px; --fs-64:64px;
+
+  /* spacing — 4px base, every value snaps */
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:24px; --s6:32px;
+  --s7:48px; --s8:64px; --s9:96px;
+
+  /* radius — concentric: 2 + 2px padding = 4 */
+  --r-out:4px; --r-in:2px; --r-pad:2px;
+
+  /* motion — canonical values, §6 */
+  --dur-state:150ms;
+  --dur-enter:300ms;
+  --dur-exit:150ms;
+  --ease-out:cubic-bezier(0.2,0,0,1);
+}
+
+*,*::before,*::after{box-sizing:border-box}
+
+html{
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  background:var(--paper);
+}
+
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--font-body);
+  font-size:var(--fs-16);
+  line-height:1.6;
+  font-weight:400;
+}
+
+h1,h2,h3,p,ul,ol,figure{margin:0;padding:0}
+ul,ol{list-style:none}
+h1,h2,h3{text-wrap:balance;font-weight:700;line-height:1.15}
+p{text-wrap:pretty}
+
+a{color:var(--jade);text-underline-offset:3px}
+
+/* focus ring: 2px solid, 2px offset, ink on paper = 15:1 (§6) */
+:focus-visible{
+  outline:2px solid var(--ink);
+  outline-offset:2px;
+  border-radius:var(--r-in);
+}
+
+.sr-only{
+  position:absolute;width:1px;height:1px;padding:0;margin:-1px;
+  overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;
+}
+
+.wrap{max-width:1280px;margin:0 auto;padding:0 var(--s5)}
+@media (min-width:900px){ .wrap{padding:0 var(--s7)} }
+
+.num{font-family:var(--font-mono);font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+
+.display{
+  font-family:var(--font-display);
+  font-weight:900;
+  letter-spacing:-0.01em;
+  line-height:1.04;
+}
+
+/* ---------- buttons ---------- */
+.btn{
+  -webkit-appearance:none;appearance:none;
+  font-family:var(--font-body);
+  font-size:var(--fs-16);
+  font-weight:700;
+  line-height:1;
+  min-height:44px;
+  padding:var(--s3) var(--s5);
+  border-radius:var(--r-in);
+  border:1px solid transparent;
+  background:none;
+  color:var(--ink);
+  cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;
+  gap:var(--s2);
+  transition-property:background-color,color,border-color,scale;
+  transition-duration:var(--dur-state);
+  transition-timing-function:var(--ease-out);
+}
+.btn:active:not(:disabled){scale:0.96}
+.btn:disabled{opacity:0.6;cursor:not-allowed}
+
+.btn--primary{
+  background:var(--ink);color:var(--paper);
+  min-height:52px;
+  padding:var(--s4) var(--s6);
+  font-size:var(--fs-18);
+  width:100%;
+  /* icon-side padding is not needed: no icon glyphs anywhere on this surface */
+}
+.btn--primary:hover:not(:disabled){background:#2A2E36}
+.btn--primary:active:not(:disabled){background:#000}
+
+.btn--ghost{
+  border-color:var(--jade);color:var(--jade);
+  background:var(--paper-raise);
+}
+.btn--ghost:hover:not(:disabled){background:var(--jade-tint)}
+
+.btn--quiet{
+  border-color:var(--rule);color:var(--ink-muted);
+  background:var(--paper-raise);
+  min-height:44px;
+  padding:var(--s2) var(--s3);
+  font-size:var(--fs-14);
+  font-weight:500;
+}
+@media (min-width:641px){ .btn--quiet{min-height:40px} }
+.btn--quiet:hover:not(:disabled){border-color:var(--ink);color:var(--ink)}
+
+/* ---------- header ---------- */
+.top{
+  border-bottom:1px solid var(--rule);
+  background:var(--paper);
+}
+.top__in{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:var(--s4);padding-top:var(--s4);padding-bottom:var(--s4);
+}
+.brand{display:flex;align-items:baseline;gap:var(--s3);min-width:0}
+.brand__mark{
+  font-family:var(--font-display);font-weight:900;
+  font-size:var(--fs-26);letter-spacing:0.02em;
+}
+.brand__latin{
+  font-family:var(--font-mono);font-size:var(--fs-12);
+  color:var(--ink-muted);letter-spacing:0.06em;
+}
+.top__meta{
+  display:flex;align-items:baseline;gap:var(--s3);
+  font-size:var(--fs-13);color:var(--ink-muted);
+  border-left:1px solid var(--rule);padding-left:var(--s3);
+}
+@media (max-width:520px){
+  .top__meta{border-left:0;padding-left:0}
+  .top__dist{display:none}
+}
+
+/* ---------- hero ---------- */
+.hero{padding-top:var(--s7);padding-bottom:var(--s7)}
+@media (min-width:900px){ .hero{padding-top:var(--s9);padding-bottom:var(--s8)} }
+
+.hero__grid{display:grid;gap:var(--s6)}
+/* narrow: priority order is headline → the ticket (the decision) → supporting copy.
+   display:contents lets the three text chunks become grid items so the ticket
+   can sit second without duplicating markup. */
+@media (max-width:959px){
+  .hero__text{display:contents}
+  .hero__lede{order:1}
+  .ticket{order:2}
+  .hero__sub{order:3;margin-top:0}
+  .hero__facts{order:4;margin-top:var(--s2)}
+}
+@media (min-width:960px){
+  .hero__grid{grid-template-columns:7fr 5fr;gap:var(--s8);align-items:start}
+}
+
+.hero__lede{max-width:20ch}
+.hero h1{
+  font-family:var(--font-display);font-weight:900;
+  font-size:clamp(40px,6.4vw,76px);
+  letter-spacing:-0.015em;
+  /* CJK display leading floor: 1.02 collides here, and a fallback face
+     renders with a taller line box before Anton loads. */
+  line-height:1.18;
+}
+.hero__sub{
+  margin-top:var(--s5);max-width:34ch;
+  font-size:var(--fs-18);color:var(--ink-muted);line-height:1.65;
+}
+.hero__facts{
+  margin-top:var(--s6);
+  border-top:1px solid var(--rule);
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:var(--s4) var(--s5);
+  padding-top:var(--s3);
+}
+.fact{font-size:var(--fs-13);color:var(--ink-muted)}
+.fact b{
+  display:block;font-family:var(--font-mono);
+  font-variant-numeric:tabular-nums;
+  font-size:var(--fs-20);color:var(--ink);font-weight:500;
+  margin-top:var(--s1);
+}
+
+/* ---------- the ticket (focal point) ---------- */
+.ticket{
+  background:var(--paper-raise);
+  border:1px solid var(--ink);
+  border-radius:var(--r-out);
+  padding:var(--s2);
+}
+.ticket__inner{
+  border-radius:var(--r-in);      /* 4 - 2px padding = 2 — concentric */
+  padding:var(--s5) var(--s5) var(--s6);
+  border:1px solid var(--rule);
+  background:
+    repeating-linear-gradient(180deg,transparent 0 27px,rgba(20,22,26,0.035) 27px 28px);
+}
+@media (max-width:420px){ .ticket__inner{padding:var(--s4) var(--s4) var(--s5)} }
+
+.ticket__head{
+  display:flex;align-items:baseline;justify-content:space-between;
+  gap:var(--s3);border-bottom:1px solid var(--ink);padding-bottom:var(--s2);
+}
+.ticket__label{font-size:var(--fs-13);font-weight:500;color:var(--ink-muted)}
+.ticket__code{font-family:var(--font-mono);font-size:var(--fs-12);color:var(--ink-muted)}
+
+.clock{
+  display:block;margin:var(--s5) 0 var(--s2);
+  font-family:var(--font-mono);font-variant-numeric:tabular-nums;
+  font-size:var(--fs-64);font-weight:500;line-height:1;
+  letter-spacing:-0.02em;
+}
+@media (max-width:420px){ .clock{font-size:var(--fs-46)} }
+
+/* min-height holds the card at one size across the deciding → rolling → issued
+   swap so a resting cursor over the primary action never slips onto another button */
+.ticket__stage{min-height:344px}
+@media (min-width:960px){ .ticket__stage{min-height:330px} }
+
+.ticket__note{font-size:var(--fs-14);color:var(--ink-muted);max-width:32ch;min-height:2.6em}
+
+.ticket__actions{margin-top:var(--s5);display:grid;gap:var(--s3)}
+.ticket__actions .btn--ghost{width:100%}
+
+/* indeterminate progress — an honest "still working" bar, never a lone spinner */
+.scan{
+  height:2px;background:var(--rule);margin-top:var(--s5);
+  overflow:hidden;border-radius:0;
+}
+.scan__bar{
+  display:block;height:2px;width:40%;background:var(--jade);
+  animation:scan 900ms var(--ease-out) infinite;
+}
+@keyframes scan{
+  0%{transform:translateX(-100%)}
+  100%{transform:translateX(250%)}
+}
+.scan[hidden]{display:none}
+
+/* tear line + perforation */
+.tear{
+  position:relative;border-top:1px dashed var(--rule);
+  margin:var(--s6) calc(var(--s5) * -1) var(--s5);
+}
+.tear::before,.tear::after{
+  content:"";position:absolute;top:-7px;width:12px;height:12px;
+  background:var(--paper);border-radius:50%;
+}
+.tear::before{left:-6px}
+.tear::after{right:-6px}
+
+/* receipt rows: dotted leaders are structural, not decorative */
+.row{
+  display:flex;align-items:baseline;gap:var(--s2);
+  padding:var(--s2) 0;
+  font-size:var(--fs-14);
+}
+.row + .row{border-top:1px solid var(--paper-sunk)}
+.row__k{color:var(--ink-muted)}
+.row__leader{
+  flex:1;border-bottom:1px dotted var(--rule);
+  transform:translateY(-4px);min-width:var(--s4);
+}
+.row__v{font-family:var(--font-mono);font-variant-numeric:tabular-nums;font-weight:500}
+.row--strong .row__v{font-size:var(--fs-16)}
+
+.receipt__shop{
+  font-family:var(--font-display);font-weight:900;
+  font-size:var(--fs-26);line-height:1.2;margin-top:var(--s4);
+}
+.receipt__shop small{
+  display:block;font-family:var(--font-body);font-weight:400;
+  font-size:var(--fs-13);color:var(--ink-muted);margin-top:var(--s1);
+}
+.receipt__pick{
+  margin-top:var(--s4);padding:var(--s3);
+  background:var(--jade-tint);border-left:2px solid var(--jade);
+  border-radius:var(--r-in);
+}
+.receipt__pick .row__leader{border-bottom-color:#C3D2C9}
+.receipt__pick .row__k{color:var(--jade)}
+
+/* the one red element on the page: the stamp */
+.stamp{
+  position:absolute;right:var(--s5);top:56px;
+  transform:rotate(-7deg);
+  border:2px solid var(--red);
+  color:var(--red);
+  border-radius:var(--r-in);
+  padding:var(--s1) var(--s3);
+  font-family:var(--font-body);font-weight:900;
+  font-size:var(--fs-20);letter-spacing:0.08em;line-height:1.35;
+  background:rgba(228,52,31,0.04);
+  mix-blend-mode:multiply;
+  text-align:center;
+}
+.stamp small{
+  display:block;font-family:var(--font-mono);font-weight:400;
+  font-size:var(--fs-12);letter-spacing:0.02em;
+  color:var(--red-ink);   /* 12px needs the 4.5:1 step, not the 3:1 mark colour */
+}
+.stamp--in{animation:press var(--dur-enter) var(--ease-out) both}
+@keyframes press{
+  0%{opacity:0;transform:rotate(-7deg) scale(1.6)}
+  60%{opacity:0.95}
+  100%{opacity:0.92;transform:rotate(-7deg) scale(1)}
+}
+.stamp[hidden]{display:none}
+
+.ticket__stage{position:relative;display:block}
+
+/* one orchestrated entrance, hero only — 3 semantic chunks, 100ms apart */
+.enter{animation:rise var(--dur-enter) var(--ease-out) both}
+.enter--2{animation-delay:100ms}
+.enter--3{animation-delay:200ms}
+@keyframes rise{
+  from{opacity:0;transform:translateY(12px);filter:blur(4px)}
+  to{opacity:1;transform:none;filter:blur(0)}
+}
+
+/* ---------- generic section ---------- */
+.section{padding-top:var(--s8);padding-bottom:var(--s8)}
+.section__head{
+  display:flex;align-items:flex-end;justify-content:space-between;
+  gap:var(--s5);flex-wrap:wrap;
+  border-bottom:2px solid var(--ink);padding-bottom:var(--s3);
+}
+.section h2{
+  font-family:var(--font-display);font-weight:900;
+  font-size:clamp(24px,3vw,34px);letter-spacing:0;
+}
+.section__sub{font-size:var(--fs-14);color:var(--ink-muted);max-width:46ch}
+.section__body{margin-top:var(--s5)}
+
+.cols{display:grid;gap:var(--s7)}
+@media (min-width:960px){
+  .cols{grid-template-columns:8fr 4fr;gap:var(--s8)}
+  .cols--flip{grid-template-columns:5fr 7fr}
+}
+
+/* ---------- menu board (tight) ---------- */
+.board{
+  border:1px solid var(--ink);border-radius:var(--r-out);overflow:hidden;
+  background:var(--paper-raise);
+}
+.board__bar{
+  background:var(--jade);color:var(--paper);
+  padding:var(--s3) var(--s4);
+  display:flex;align-items:baseline;justify-content:space-between;gap:var(--s3);
+  flex-wrap:wrap;
+}
+.board__title{font-weight:900;font-size:var(--fs-20);letter-spacing:0.02em}
+.board__hours{font-family:var(--font-mono);font-size:var(--fs-12);font-variant-numeric:tabular-nums}
+.board__list{padding:var(--s1) var(--s4)}
+.dish{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:var(--s1) var(--s4);
+  align-items:baseline;
+  padding:var(--s3) 0;
+  border-bottom:1px solid var(--paper-sunk);
+}
+.dish:last-child{border-bottom:0}
+.dish__name{font-weight:700;font-size:var(--fs-16)}
+.dish__note{
+  grid-column:1 / -1;font-size:var(--fs-13);color:var(--ink-muted);
+  max-width:64ch;
+}
+.dish__price{
+  font-family:var(--font-mono);font-variant-numeric:tabular-nums;
+  font-size:var(--fs-16);font-weight:500;white-space:nowrap;
+}
+.dish__stock{
+  grid-column:2;justify-self:end;
+  font-family:var(--font-mono);font-size:var(--fs-12);
+  color:var(--ink-muted);font-variant-numeric:tabular-nums;
+}
+.dish--out .dish__name,.dish--out .dish__price{color:var(--ink-muted)}
+.dish--out .dish__name{text-decoration:line-through;text-decoration-thickness:1px}
+.board__side{
+  border-top:1px solid var(--ink);padding:var(--s3) var(--s4) var(--s4);
+  background:var(--paper-sunk);
+  display:flex;flex-wrap:wrap;gap:var(--s4) var(--s6);
+  font-size:var(--fs-14);
+}
+.board__side span{font-family:var(--font-mono);font-variant-numeric:tabular-nums;font-weight:500}
+
+/* ---------- shop info aside ---------- */
+.info{border-top:2px solid var(--ink);padding-top:var(--s3)}
+.info dl{margin:0;display:grid;gap:var(--s3)}
+.info dt{font-size:var(--fs-13);color:var(--ink-muted)}
+.info dd{
+  margin:var(--s1) 0 0;font-size:var(--fs-14);max-width:40ch;
+}
+.info dd .num{font-size:var(--fs-16);font-weight:500}
+
+/* ---------- nearby list ---------- */
+.tools{
+  display:flex;flex-wrap:wrap;gap:var(--s3);align-items:center;
+  margin-bottom:var(--s4);
+}
+.field{display:flex;gap:var(--s2);align-items:center;flex:1 1 260px;min-width:0}
+.field label{font-size:var(--fs-13);color:var(--ink-muted);white-space:nowrap}
+.input{
+  flex:1 1 auto;min-width:0;
+  font-family:var(--font-body);font-size:var(--fs-16);
+  min-height:44px;padding:var(--s2) var(--s3);
+  border:1px solid var(--rule);border-radius:var(--r-in);
+  background:var(--paper-raise);color:var(--ink);
+  transition-property:border-color,background-color;
+  transition-duration:var(--dur-state);
+  transition-timing-function:var(--ease-out);
+}
+.input:hover{border-color:var(--ink-muted)}
+.input:focus-visible{border-color:var(--ink)}
+.input::placeholder{color:var(--ink-muted);opacity:0.75}
+
+.switch{display:inline-flex;align-items:center;gap:var(--s2);cursor:pointer;min-height:44px}
+.switch input{
+  appearance:none;-webkit-appearance:none;
+  width:20px;height:20px;margin:0;flex:none;
+  border:1px solid var(--ink-muted);border-radius:var(--r-in);
+  background:var(--paper-raise);cursor:pointer;position:relative;
+  transition-property:background-color,border-color;
+  transition-duration:var(--dur-state);
+  transition-timing-function:var(--ease-out);
+}
+.switch input:hover{border-color:var(--ink)}
+.switch input:checked{background:var(--jade);border-color:var(--jade)}
+.switch input:checked::after{
+  content:"";position:absolute;left:5px;top:1px;
+  width:6px;height:11px;border:solid var(--paper);
+  border-width:0 2px 2px 0;transform:rotate(40deg);
+}
+.switch input:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.switch span{font-size:var(--fs-14);color:var(--ink)}
+
+.shops{border-top:1px solid var(--ink)}
+.shop{
+  display:grid;
+  grid-template-columns:1fr auto;
+  align-items:center;
+  gap:var(--s2) var(--s4);
+  padding:var(--s3) var(--s2);
+  border-bottom:1px solid var(--rule);
+  transition-property:background-color;
+  transition-duration:var(--dur-state);
+  transition-timing-function:var(--ease-out);
+}
+.shop:hover{background:var(--paper-sunk)}
+.shop__name{font-weight:700;font-size:var(--fs-16);min-width:0}
+.shop__meta{
+  grid-column:1;font-size:var(--fs-13);color:var(--ink-muted);
+  display:flex;flex-wrap:wrap;gap:var(--s1) var(--s4);
+  font-variant-numeric:tabular-nums;
+}
+.shop__meta b{font-family:var(--font-mono);font-weight:500;color:var(--ink)}
+.shop__act{grid-row:1 / span 2;grid-column:2}
+.shop__state{color:var(--ink-muted)}
+/* mixed-size word gaps after mono numerals look tight; give them room */
+.shop__meta i{font-style:normal;display:inline-block;padding:0 1px}
+.shop--closed .shop__name{color:var(--ink-muted)}
+.shop--picked{background:var(--jade-tint)}
+.shop--picked .shop__name::after{
+  content:"已出票";margin-left:var(--s2);
+  font-family:var(--font-mono);font-size:var(--fs-12);
+  font-weight:400;color:var(--jade);
+}
+
+.empty{
+  border:1px dashed var(--rule);border-radius:var(--r-in);
+  padding:var(--s6) var(--s4);text-align:center;
+  background:var(--paper-raise);
+}
+.empty p{font-size:var(--fs-14);color:var(--ink-muted);max-width:44ch;margin:var(--s2) auto var(--s4)}
+.empty[hidden]{display:none}
+
+/* ---------- queue list (densest block) ---------- */
+.queue{border-top:1px solid var(--ink)}
+.qrow{
+  display:grid;
+  grid-template-columns:56px 1fr auto;
+  align-items:baseline;gap:var(--s1) var(--s4);
+  padding:var(--s2) var(--s2);
+  border-bottom:1px solid var(--rule);
+  font-size:var(--fs-14);
+  transition-property:background-color;
+  transition-duration:var(--dur-state);
+  transition-timing-function:var(--ease-out);
+}
+.qrow:hover{background:var(--paper-sunk)}
+.qrow__no{
+  font-family:var(--font-mono);font-variant-numeric:tabular-nums;
+  font-weight:500;font-size:var(--fs-16);
+}
+.qrow__who{color:var(--ink-muted);font-size:var(--fs-13)}
+.qrow__who b{color:var(--ink);font-weight:500}
+.qrow__wait{
+  grid-column:2;font-size:var(--fs-13);color:var(--ink-muted);
+  font-variant-numeric:tabular-nums;
+}
+.qrow__state{grid-column:3;grid-row:1;justify-self:end;white-space:nowrap;font-size:var(--fs-13)}
+.qrow__state[data-s="seated"]{color:var(--jade);font-weight:700}
+.qrow__state[data-s="wait"]{color:var(--ink);font-weight:500}
+.qrow__state[data-s="missed"]{color:var(--ink-muted);text-decoration:line-through}
+@media (min-width:640px){
+  .qrow{grid-template-columns:64px 1fr 120px 96px;align-items:center}
+  .qrow__wait{grid-column:3;grid-row:1}
+  .qrow__state{grid-column:4}
+}
+.queue__foot{
+  display:flex;justify-content:space-between;gap:var(--s4);
+  padding:var(--s3) var(--s2) 0;font-size:var(--fs-13);color:var(--ink-muted);
+  flex-wrap:wrap;
+}
+
+/* ---------- footer ---------- */
+.foot{
+  border-top:2px solid var(--ink);margin-top:var(--s8);
+  background:var(--paper-sunk);
+}
+.foot__in{
+  padding:var(--s7) 0 var(--s8);
+  display:grid;gap:var(--s6);
+}
+@media (min-width:900px){ .foot__in{grid-template-columns:repeat(3,1fr)} }
+.foot h2{font-size:var(--fs-18);font-family:var(--font-body);font-weight:700;margin-bottom:var(--s3)}
+.foot p,.foot li{font-size:var(--fs-14);color:var(--ink-muted);line-height:1.7}
+.foot .num{color:var(--ink)}
+.foot__note{max-width:64ch}
+
+/* ---------- reduced motion: neutralize durations, keep static cues ---------- */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:0.01ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:0.01ms !important;
+  }
+  /* keep the static cue: the bar stays, it just stops sweeping */
+  .scan__bar{width:100%;transform:none}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap top__in">
+    <div class="brand">
+      <span class="brand__mark">饭点</span>
+      <span class="brand__latin">FANDIAN</span>
+    </div>
+    <p class="top__meta">
+      <span class="num" id="nowTime">18:42</span>
+      <span class="top__dist">朝阳区双井 富力城B座底商</span>
+    </p>
+  </div>
+</header>
+
+<main>
+
+  <!-- ============ HERO + TICKET ============ -->
+  <section class="hero" aria-labelledby="heroTitle">
+    <div class="wrap hero__grid">
+
+      <div class="hero__text">
+        <h1 id="heroTitle" class="hero__lede enter">六点四十了，还没想好吃什么？</h1>
+        <p class="hero__sub enter enter--2">
+          双井这一片，现在还有 7 家开着灶，两家带排队。
+          三分钟内定不下来，我们直接替你出一张票，定店、定菜、给你号。
+        </p>
+        <div class="hero__facts enter enter--3">
+          <div class="fact">现在叫到<b class="num" id="factCalling">A031</b></div>
+          <div class="fact">步行最近<b class="num">300 米</b></div>
+          <div class="fact">开放到<b class="num">22:30</b></div>
+        </div>
+      </div>
+
+      <article class="ticket enter enter--2" aria-labelledby="ticketLabel">
+        <div class="ticket__inner">
+          <div class="ticket__stage">
+            <div class="ticket__head">
+              <span class="ticket__label" id="ticketLabel">决定倒计时</span>
+              <span class="ticket__code num" id="ticketCode">票号待出</span>
+            </div>
+
+            <span class="clock num" id="clock" role="timer" aria-labelledby="ticketLabel">03:00</span>
+            <p class="ticket__note" id="ticketNote">倒计时走完，这顿饭就由我们替你点。</p>
+
+            <div class="scan" id="scan" hidden>
+              <span class="scan__bar"></span>
+            </div>
+
+            <div class="ticket__actions">
+              <button class="btn btn--primary" id="decideBtn" type="button">替我决定</button>
+              <button class="btn btn--ghost" id="browseBtn" type="button">先看看有什么</button>
+            </div>
+
+            <div class="stamp" id="stamp" hidden aria-hidden="true">
+              就它了
+              <small class="num" id="stampTime">18:42</small>
+            </div>
+          </div>
+
+          <div id="receipt" hidden>
+            <div class="tear" role="presentation"></div>
+            <p class="ticket__code num" id="receiptNo">取号 A037</p>
+            <h2 class="receipt__shop" id="receiptShop">
+              陈记砂锅
+              <small id="receiptBranch">双井店 · 步行 6 分钟 · 420 米</small>
+            </h2>
+
+            <div class="receipt__pick">
+              <div class="row">
+                <span class="row__k">推荐</span>
+                <span class="row__leader"></span>
+                <span class="row__v num" id="receiptDish">番茄牛腩砂锅</span>
+              </div>
+              <div class="row">
+                <span class="row__k">配一份</span>
+                <span class="row__leader"></span>
+                <span class="row__v num" id="receiptSide">米饭</span>
+              </div>
+            </div>
+
+            <div class="row row--strong" style="margin-top:var(--s4)">
+              <span class="row__k">这一单合计</span>
+              <span class="row__leader"></span>
+              <span class="row__v num" id="receiptTotal">¥49</span>
+            </div>
+            <div class="row">
+              <span class="row__k">人均</span>
+              <span class="row__leader"></span>
+              <span class="row__v num" id="receiptPc">¥38</span>
+            </div>
+            <div class="row">
+              <span class="row__k">出票时间</span>
+              <span class="row__leader"></span>
+              <span class="row__v num" id="receiptTime">18:42</span>
+            </div>
+            <div class="row">
+              <span class="row__k">当前叫号</span>
+              <span class="row__leader"></span>
+              <span class="row__v num" id="receiptCalling">A029</span>
+            </div>
+            <div class="row">
+              <span class="row__k" id="holdLabel">为你保留</span>
+              <span class="row__leader"></span>
+              <span class="row__v num" id="holdClock">03:00</span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ============ MENU BOARD ============ -->
+  <section class="section" aria-labelledby="boardTitle">
+    <div class="wrap">
+      <div class="section__head">
+        <h2 id="boardTitle">今晚的灶</h2>
+        <p class="section__sub">
+          菜单是按出锅顺序排的，卖完就划掉。价格含餐位费，不另收茶位。
+        </p>
+      </div>
+
+      <div class="cols section__body">
+        <div class="board">
+          <div class="board__bar">
+            <span class="board__title">陈记砂锅 · 双井店</span>
+            <span class="board__hours">11:00–14:00 / 17:00–22:30</span>
+          </div>
+
+          <div class="board__list">
+            <div class="dish">
+              <span class="dish__name">番茄牛腩砂锅</span>
+              <span class="dish__price num">¥46</span>
+              <span class="dish__note">牛腩炖足两小时，番茄去皮熬到起沙。上桌还在滚，先别急着动筷子。</span>
+              <span class="dish__stock">剩 3 份</span>
+            </div>
+            <div class="dish">
+              <span class="dish__name">砂锅焖面</span>
+              <span class="dish__price num">¥28</span>
+              <span class="dish__note">现擀面，焖够八分钟，底下结一层锅巴，端上来别搅。</span>
+              <span class="dish__stock">剩 12 份</span>
+            </div>
+            <div class="dish">
+              <span class="dish__name">小炒黄牛肉</span>
+              <span class="dish__price num">¥42</span>
+              <span class="dish__note">小米辣和二荆条各一半，牛肉切薄片猛火十八秒，不能免辣。</span>
+              <span class="dish__stock">剩 5 份</span>
+            </div>
+            <div class="dish dish--out">
+              <span class="dish__name">蒜香蒸排骨</span>
+              <span class="dish__price num">¥36</span>
+              <span class="dish__note">今天的排骨卖完了，明天 17:00 重新上笼。</span>
+              <span class="dish__stock">售完</span>
+            </div>
+            <div class="dish">
+              <span class="dish__name">手撕包菜</span>
+              <span class="dish__price num">¥22</span>
+              <span class="dish__note">手撕不切，猪油渣和干辣椒炝锅，解腻用。</span>
+              <span class="dish__stock">剩 20 份</span>
+            </div>
+            <div class="dish">
+              <span class="dish__name">酸辣土豆丝</span>
+              <span class="dish__price num">¥18</span>
+              <span class="dish__note">手切，泡过水，脆。可以要求少放醋。</span>
+              <span class="dish__stock">剩 18 份</span>
+            </div>
+          </div>
+
+          <div class="board__side">
+            <span>米饭 ¥3</span>
+            <span>冰镇酸梅汤 ¥9</span>
+            <span>砂锅加面 ¥4</span>
+            <span>打包盒 ¥1</span>
+          </div>
+        </div>
+
+        <aside class="info" aria-labelledby="infoTitle">
+          <h2 id="infoTitle" style="font-size:var(--fs-20)">到店信息</h2>
+          <dl style="margin-top:var(--s4)">
+            <div>
+              <dt>取号机位置</dt>
+              <dd>门口右手边，扫码和按键都能取，出票后 15 分钟内没到就过号。</dd>
+            </div>
+            <div>
+              <dt>现在排队</dt>
+              <dd><span class="num">3</span> 桌两人位，<span class="num">1</span> 桌四人位，预计 <span class="num">14</span> 分钟。</dd>
+            </div>
+            <div>
+              <dt>电话</dt>
+              <dd class="num">010-6771 4820</dd>
+            </div>
+            <div>
+              <dt>地址</dt>
+              <dd>朝阳区双井富力城 B 座 1 层底商，地铁 7 号线双井站 A 口出来往西 300 米。</dd>
+            </div>
+          </dl>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ NEARBY ============ -->
+  <section class="section" aria-labelledby="nearTitle">
+    <div class="wrap">
+      <div class="section__head">
+        <h2 id="nearTitle">双井附近</h2>
+        <p class="section__sub">按步行距离排的，<span id="nearCount">9</span> 家。点「选它」就直接出票，跟倒计时替你选的是同一套号。</p>
+      </div>
+
+      <div class="cols cols--flip section__body">
+        <aside class="info" aria-labelledby="howTitle">
+          <h2 id="howTitle" style="font-size:var(--fs-20)">这张票怎么用</h2>
+          <dl style="margin-top:var(--s4)">
+            <div>
+              <dt>1 · 出票</dt>
+              <dd>票上写清楚了去哪家、吃什么、大概多少钱，取号是店里的真实队列号。</dd>
+            </div>
+            <div>
+              <dt>2 · 保留</dt>
+              <dd>出票后帮你保留三分钟，倒计时归零，号码自动释放给下一位。</dd>
+            </div>
+            <div>
+              <dt>3 · 到店</dt>
+              <dd>到门口报号码，当前叫号在票上，差三个号的时候再往里走。</dd>
+            </div>
+          </dl>
+        </aside>
+
+        <div>
+          <div class="tools">
+            <div class="field">
+              <label for="q">搜店名或菜</label>
+              <input class="input" id="q" type="search" placeholder="米线 / 火锅 / 螺蛳粉" autocomplete="off">
+              <button class="btn btn--quiet" id="clearBtn" type="button" disabled>清空</button>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="openOnly">
+              <span>只看营业中</span>
+            </label>
+          </div>
+
+          <ul class="shops" id="shopList"></ul>
+
+          <div class="empty" id="empty" hidden>
+            <p>没有匹配的店。试试「米线」，或者把「只看营业中」关掉，打烊那两家今晚也不算差。</p>
+            <button class="btn btn--ghost" id="resetFilters" type="button">清掉筛选条件</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ QUEUE ============ -->
+  <section class="section" aria-labelledby="queueTitle">
+    <div class="wrap">
+      <div class="section__head">
+        <h2 id="queueTitle">门口等位</h2>
+        <p class="section__sub">陈记砂锅双井店，<span class="num">18:42</span> 的实时队列。过号的号牌会在 10 分钟后放出来。</p>
+      </div>
+
+      <div class="section__body">
+        <ul class="queue">
+          <li class="qrow"><span class="qrow__no">A029</span><span class="qrow__who">两人位 <b>靠窗</b></span><span class="qrow__wait">已等 17 分钟</span><span class="qrow__state" data-s="seated">刚坐下</span></li>
+          <li class="qrow"><span class="qrow__no">A030</span><span class="qrow__who">两人位</span><span class="qrow__wait">已等 16 分钟</span><span class="qrow__state" data-s="seated">刚坐下</span></li>
+          <li class="qrow"><span class="qrow__no">A031</span><span class="qrow__who">四人位 <b>带一个小孩</b></span><span class="qrow__wait">已等 15 分钟</span><span class="qrow__state" data-s="wait">叫号中</span></li>
+          <li class="qrow"><span class="qrow__no">A032</span><span class="qrow__who">两人位</span><span class="qrow__wait">已等 13 分钟</span><span class="qrow__state" data-s="wait">等位中</span></li>
+          <li class="qrow"><span class="qrow__no">A033</span><span class="qrow__who">两人位 <b>可拼桌</b></span><span class="qrow__wait">已等 11 分钟</span><span class="qrow__state" data-s="wait">等位中</span></li>
+          <li class="qrow"><span class="qrow__no">A034</span><span class="qrow__who">六人位 <b>公司团建</b></span><span class="qrow__wait">已等 9 分钟</span><span class="qrow__state" data-s="wait">等位中</span></li>
+          <li class="qrow"><span class="qrow__no">A035</span><span class="qrow__who">两人位</span><span class="qrow__wait">已等 8 分钟</span><span class="qrow__state" data-s="wait">等位中</span></li>
+          <li class="qrow"><span class="qrow__no">A036</span><span class="qrow__who">四人位 <b>靠门口，介意慎取</b></span><span class="qrow__wait">已等 6 分钟</span><span class="qrow__state" data-s="wait">等位中</span></li>
+          <li class="qrow"><span class="qrow__no">A024</span><span class="qrow__who">两人位</span><span class="qrow__wait">已等 41 分钟</span><span class="qrow__state" data-s="missed">过号未到</span></li>
+          <li class="qrow"><span class="qrow__no">A026</span><span class="qrow__who">四人位</span><span class="qrow__wait">已等 33 分钟</span><span class="qrow__state" data-s="missed">过号未到</span></li>
+          <li class="qrow"><span class="qrow__no">A027</span><span class="qrow__who">两人位 <b>打电话说在路上</b></span><span class="qrow__wait">已等 28 分钟</span><span class="qrow__state" data-s="wait">顺延两桌</span></li>
+          <li class="qrow"><span class="qrow__no">A028</span><span class="qrow__who">两人位</span><span class="qrow__wait">已等 22 分钟</span><span class="qrow__state" data-s="wait">等位中</span></li>
+        </ul>
+        <div class="queue__foot">
+          <span>当前叫号 <b class="num" style="color:var(--ink)">A031</b>，下一批 3 桌</span>
+          <span>最后点单 22:00</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap foot__in">
+    <div>
+      <h2>门店</h2>
+      <p>陈记砂锅 · 双井店<br>朝阳区双井富力城 B 座 1 层底商</p>
+      <p class="num" style="margin-top:var(--s2)">010-6771 4820</p>
+    </div>
+    <div>
+      <h2>营业时间</h2>
+      <ul>
+        <li>午市 <span class="num">11:00–14:00</span></li>
+        <li>晚市 <span class="num">17:00–22:30</span></li>
+        <li>最后点单 <span class="num">22:00</span></li>
+      </ul>
+    </div>
+    <div>
+      <h2>关于这张票</h2>
+      <p class="foot__note">
+        票号是店里的真实队列号，过号 10 分钟后自动放给下一位。
+        保留三分钟是给路上留的时间，超了要重新取号。
+      </p>
+    </div>
+  </div>
+</footer>
+
+<p class="sr-only" role="status" aria-live="polite" id="live"></p>
+
+<script>
+(function(){
+  "use strict";
+
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+  /* ---------- data: real names, real prices ---------- */
+  var SHOPS = [
+    {n:"沙县小吃",      br:"双井南口",        cat:"快餐",   pc:20, dist:"300 米", wait:0,  walk:4,  open:true,  dish:"拌面加扁肉汤", price:21, side:"蒸饺", sidep:8},
+    {n:"江南小炒",      br:"双井富力城B座底商店", cat:"家常小炒", pc:52, dist:"380 米", wait:0,  walk:5,  open:false, dish:"小炒黄牛肉", price:42, side:"手撕包菜", sidep:22, shut:"20:30 打烊"},
+    {n:"陈记砂锅",      br:"双井店",          cat:"砂锅",   pc:38, dist:"420 米", wait:0,  walk:6,  open:true,  dish:"番茄牛腩砂锅", price:46, side:"米饭", sidep:3},
+    {n:"老北京炸酱面",  br:"垂杨柳店",        cat:"京味面食", pc:28, dist:"500 米", wait:0,  walk:7,  open:true,  dish:"小碗干炸酱面", price:26, side:"芥末墩", sidep:12},
+    {n:"柳州螺蛳粉",    br:"广渠路店",        cat:"粉面",   pc:24, dist:"650 米", wait:6,  walk:9,  open:true,  dish:"原味螺蛳粉 中辣", price:22, side:"卤蛋加腐竹", sidep:6},
+    {n:"蜀香源冒菜",    br:"双井桥东",        cat:"川味",   pc:32, dist:"830 米", wait:12, walk:11, open:true,  dish:"牛肉冒菜 微辣", price:36, side:"米饭", sidep:3},
+    {n:"重庆小面",      br:"广渠门外大街店",  cat:"面食",   pc:22, dist:"900 米", wait:0,  walk:12, open:false, dish:"豌杂面 干馏", price:24, side:"冰粉", sidep:10, shut:"21:00 打烊"},
+    {n:"潮汕牛肉火锅",  br:"富力城店",        cat:"火锅",   pc:96, dist:"1.1 公里", wait:25, walk:14, open:true, dish:"吊龙匙柄双拼", price:88, side:"粿条", sidep:8},
+    {n:"云南小锅米线",  br:"劲松店",          cat:"米线",   pc:30, dist:"1.4 公里", wait:8,  walk:18, open:true, dish:"酸汤小锅米线", price:28, side:"炸洋芋", sidep:10}
+  ];
+
+  var el = function(id){ return document.getElementById(id); };
+
+  /* ---------- clock in the header ---------- */
+  function hhmm(d){
+    return String(d.getHours()).padStart(2,"0") + ":" + String(d.getMinutes()).padStart(2,"0");
+  }
+  function mmss(sec){
+    sec = Math.max(0, sec);
+    return String(Math.floor(sec/60)).padStart(2,"0") + ":" + String(sec%60).padStart(2,"0");
+  }
+
+  var boot = new Date();
+  el("nowTime").textContent = hhmm(boot);
+
+  /* ---------- decision state machine ---------- */
+  var DECIDE_SECONDS = 180;
+  var HOLD_SECONDS   = 180;
+  var ROLL_MS        = reduceMotion.matches ? 200 : 1000;
+
+  var state = {
+    phase: "deciding",   // deciding | rolling | issued | expired
+    left: DECIDE_SECONDS,
+    hold: HOLD_SECONDS,
+    ticket: 36,
+    calling: 31,
+    pick: null,
+    pickedIndex: -1,
+    lastTick: Date.now(),
+    timer: null
+  };
+
+  var clock = el("clock"),
+      note = el("ticketNote"),
+      label = el("ticketLabel"),
+      code = el("ticketCode"),
+      decideBtn = el("decideBtn"),
+      browseBtn = el("browseBtn"),
+      ticketEl = document.querySelector(".ticket"),
+      scan = el("scan"),
+      stamp = el("stamp"),
+      stampTime = el("stampTime"),
+      receipt = el("receipt"),
+      holdLabel = el("holdLabel"),
+      holdClock = el("holdClock"),
+      live = el("live");
+
+  function announce(msg){ live.textContent = msg; }
+
+  /* the ticket carries its own state so CSS and assistive tech agree */
+  function setTicketState(name){
+    ticketEl.dataset.state = name;
+    ticketEl.setAttribute("aria-busy", name === "rolling" ? "true" : "false");
+  }
+
+  function openShops(){ return SHOPS.filter(function(s){ return s.open; }); }
+
+  /* ---------- countdown ---------- */
+  function startTimer(){
+    if(state.timer) return;
+    state.lastTick = Date.now();
+    state.timer = window.setInterval(tick, 1000);
+  }
+  function stopTimer(){
+    if(state.timer){ window.clearInterval(state.timer); state.timer = null; }
+  }
+  function tick(){
+    var now = Date.now();
+    var delta = Math.round((now - state.lastTick)/1000);
+    if(delta < 1) return;
+    state.lastTick = now;
+
+    if(state.phase === "deciding"){
+      state.left = Math.max(0, state.left - delta);
+      clock.textContent = mmss(state.left);
+      if(state.left <= 0) issue(pickRandom(), true);
+    } else if(state.phase === "issued"){
+      state.hold = Math.max(0, state.hold - delta);
+      holdClock.textContent = mmss(state.hold);
+      if(state.hold <= 0) expire();
+    }
+  }
+
+  function pickRandom(){
+    var pool = openShops();
+    return pool[Math.floor(Math.random()*pool.length)];
+  }
+
+  /* ---------- render ---------- */
+  function renderDeciding(){
+    state.phase = "deciding";
+    state.left = DECIDE_SECONDS;
+    state.timer = null;
+    stopTimer();
+
+    setTicketState("deciding");
+    label.textContent = "决定倒计时";
+    code.textContent = "票号待出";
+    clock.textContent = mmss(state.left);
+    clock.style.color = "";
+    note.textContent = "倒计时走完，这顿饭就由我们替你点。";
+    scan.hidden = true;
+    stamp.hidden = true;
+    receipt.hidden = true;
+    decideBtn.disabled = false;
+    decideBtn.textContent = "替我决定";
+    decideBtn.setAttribute("aria-busy","false");
+    startTimer();
+  }
+
+  function renderRolling(){
+    state.phase = "rolling";
+    setTicketState("rolling");
+    scan.hidden = false;
+    decideBtn.disabled = true;
+    decideBtn.textContent = "正在翻单";
+    decideBtn.setAttribute("aria-busy","true");
+    announce("正在翻单，稍等");
+  }
+
+  function issue(shop, auto){
+    stopTimer();
+    state.phase = "issued";
+    state.hold = HOLD_SECONDS;
+    state.ticket += 1;
+    state.pick = shop;
+    state.pickedIndex = SHOPS.indexOf(shop);
+    setTicketState("issued");
+
+    var now = new Date();
+    var no = "A" + String(state.ticket).padStart(3,"0");
+
+    /* receipt contents */
+    el("receiptNo").textContent = "取号 " + no;
+    el("receiptShop").firstChild.nodeValue = shop.n;
+    el("receiptBranch").textContent = shop.br + " · 步行 " + shop.walk + " 分钟 · " + shop.dist;
+    el("receiptDish").textContent = shop.dish;
+    el("receiptSide").textContent = shop.side;
+    el("receiptTotal").textContent = "¥" + (shop.price + shop.sidep);
+    el("receiptPc").textContent = "¥" + shop.pc;
+    el("receiptTime").textContent = hhmm(now);
+    el("receiptCalling").textContent = "A" + String(state.calling).padStart(3,"0");
+    holdClock.textContent = mmss(state.hold);
+    holdLabel.textContent = "为你保留";
+    holdClock.style.color = "";
+
+    /* timer block swaps to the hold readout */
+    label.textContent = "票已出，保留时间";
+    code.textContent = "票号 " + no;
+    clock.textContent = mmss(state.hold);
+    note.textContent = auto
+      ? "三分钟到了，替你定了这一家。到店报号码就行。"
+      : "票已经出了。三分钟后没到店，号码就放给下一位。";
+    scan.hidden = true;
+
+    stampTime.textContent = hhmm(now);
+    stamp.hidden = false;
+    stamp.classList.remove("stamp--in");
+    void stamp.offsetWidth;           /* replay the press once */
+    stamp.classList.add("stamp--in");
+
+    receipt.hidden = false;
+    decideBtn.disabled = false;
+    decideBtn.textContent = "重新决定";
+    decideBtn.setAttribute("aria-busy","false");
+
+    markPicked(shop);
+    announce("已出票：" + shop.n + "，" + shop.dish + "，取号 " + no + "，为你保留三分钟。");
+    startTimer();
+  }
+
+  function expire(){
+    stopTimer();
+    state.phase = "expired";
+    setTicketState("expired");
+    holdClock.textContent = "00:00";
+    holdClock.style.color = "var(--red)";
+    holdLabel.textContent = "保留已过期";
+    label.textContent = "号码已释放";
+    clock.textContent = "00:00";
+    clock.style.color = "var(--red)";
+    note.textContent = "号码已经放给下一位了。要重新拿一个号吗？";
+    decideBtn.textContent = "再出一次票";
+    announce("保留时间已过，号码已释放。");
+    if(state.pickedIndex > -1){
+      renderShops();
+    }
+  }
+
+  /* ---------- the primary action ---------- */
+  function roll(){
+    if(state.phase === "rolling") return;
+    renderRolling();
+
+    var names = openShops();
+    var i = 0;
+    var flicker = window.setInterval(function(){
+      code.textContent = "翻到 " + names[i % names.length].n;
+      i++;
+    }, 90);
+
+    window.setTimeout(function(){
+      window.clearInterval(flicker);
+      issue(pickRandom(), false);
+    }, ROLL_MS);
+  }
+
+  decideBtn.addEventListener("click", function(){
+    if(state.phase === "expired"){ renderDeciding(); stamp.hidden = true; announce("可以重新决定了。"); return; }
+    roll();
+  });
+
+  el("browseBtn").addEventListener("click", function(){
+    document.getElementById("boardTitle").scrollIntoView({
+      behavior: reduceMotion.matches ? "auto" : "smooth",
+      block: "start"
+    });
+    document.getElementById("boardTitle").setAttribute("tabindex","-1");
+    document.getElementById("boardTitle").focus({preventScroll:true});
+  });
+
+  /* ---------- nearby list ---------- */
+  var listEl = el("shopList"), emptyEl = el("empty"),
+      qEl = el("q"), openOnlyEl = el("openOnly"), clearBtn = el("clearBtn");
+
+  function filtered(){
+    var q = qEl.value.trim().toLowerCase();
+    return SHOPS.filter(function(s){
+      if(openOnlyEl.checked && !s.open) return false;
+      if(!q) return true;
+      return (s.n + s.br + s.cat + s.dish).toLowerCase().indexOf(q) > -1;
+    });
+  }
+
+  function renderShops(){
+    var items = filtered();
+    listEl.innerHTML = "";
+    emptyEl.hidden = items.length > 0;
+    el("nearCount").textContent = String(items.length);
+
+    items.forEach(function(s){
+      var li = document.createElement("li");
+      li.className = "shop" + (s.open ? "" : " shop--closed")
+        + (state.phase === "issued" && state.pick === s ? " shop--picked" : "");
+
+      var btn;
+      if(s.open){
+        btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "btn btn--ghost";
+        btn.textContent = "选它";
+        btn.setAttribute("aria-label","选它：" + s.n + s.br);
+        btn.addEventListener("click", function(){ issue(s, false); });
+      } else {
+        btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "btn btn--ghost";
+        btn.textContent = "已打烊";
+        btn.disabled = true;
+        btn.setAttribute("aria-label", s.n + s.br + " 已打烊，" + s.shut + "，不能出票");
+        btn.setAttribute("aria-describedby","shut-" + SHOPS.indexOf(s));
+      }
+
+      li.innerHTML =
+        '<span class="shop__name"></span>' +
+        '<span class="shop__act"></span>' +
+        '<span class="shop__meta">' +
+          '<span><b>' + s.pc + '</b> 元/人</span>' +
+          '<span>' + s.dist + ' · 步行 ' + s.walk + ' 分钟</span>' +
+          '<span>' + (s.wait > 0 ? '等位约 <b>' + s.wait + '</b> 分钟' : '到店就能坐') + '</span>' +
+          '<span class="shop__state">' + (s.open ? '营业中' : s.shut) + '</span>' +
+        '</span>';
+
+      li.querySelector(".shop__name").textContent = s.n + " " + s.br;
+      li.querySelector(".shop__act").appendChild(btn);
+      if(!s.open) li.querySelector(".shop__state").id = "shut-" + SHOPS.indexOf(s);
+      listEl.appendChild(li);
+    });
+  }
+
+  function markPicked(shop){ renderShops(); }
+
+  qEl.addEventListener("input", function(){
+    clearBtn.disabled = qEl.value.length === 0;
+    renderShops();
+  });
+  openOnlyEl.addEventListener("change", renderShops);
+  clearBtn.addEventListener("click", function(){
+    qEl.value = "";
+    clearBtn.disabled = true;
+    renderShops();
+    qEl.focus();
+  });
+  el("resetFilters").addEventListener("click", function(){
+    qEl.value = "";
+    openOnlyEl.checked = false;
+    clearBtn.disabled = true;
+    renderShops();
+    qEl.focus();
+  });
+
+  /* ---------- boot ---------- */
+  renderShops();
+  renderDeciding();
+
+  document.addEventListener("visibilitychange", function(){
+    if(!document.hidden) state.lastTick = Date.now();
+  });
+})();
+</script>
+</body>
+</html>
