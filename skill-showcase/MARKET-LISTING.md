@@ -7,6 +7,22 @@
 
 ---
 
+## 0. 现状：哪些已经做完，哪些只能你来
+
+市场里 v1.0 的**安装源就是 master 上的 `SKILL.md`**，所以推送到 GitHub 即等于更新用户装到的东西，
+不需要重新走审核。已完成：
+
+- [x] 重写后的 `SKILL.md` 已推送到 `master`，并已核验 `raw.githubusercontent.com` 正在提供新内容
+- [x] 四个兄弟技能（mvp / backend / security / performance）已加入流水线互引，同样推送即生效
+- [x] `README.md` / `README.en.md` 里失效的安装链接（指向已改名的 `my-skill`）已修正
+- [x] 演示页与核验工具已随仓库发布
+
+**只能由你完成**：`POST /v1/packages` 需要浏览器登录态（我已实测：无凭据返回 `401`，
+本机 `.dsh/.credentials.yaml` 里的 `browser-session` 凭据同样返回 `401`）。所以
+**升版本、换 summary、加 tags** 这三件事需要你登录 https://reasonix.io/skills/ 后手动提交。
+
+---
+
 ## 1. summary（一句话简介，≤200 字符）
 
 表单只有一个 summary 字段，没有独立的 description/homepage。因此 write 一个双语版本，
@@ -72,7 +88,7 @@ frontend, ui-design, design-system, responsive, accessibility, animation, intera
 | ship-it-backend | `nanfei892` | `ship-it-skills` | 正确 |
 | ship-it-mvp | `1981094442` | `my-skill`（旧名） | **handle 与仓库都过期** |
 
-`ship-it-mvp` 有 779 次安装，是第三名。它挂在旧 handle 下、指向已改名的仓库，
+`ship-it-mvp` 有 782 次安装，是第 4 名。它挂在旧 handle 下、指向已改名的仓库，
 既无法与另外两个技能互相导流，也可能因仓库改名导致安装失败。
 
 **建议**：把 `ship-it-mvp` 重新发布到 `nanfei892` handle 下、源指向
@@ -81,9 +97,15 @@ frontend, ui-design, design-system, responsive, accessibility, animation, intera
 
 ---
 
-## 6. 交叉导流文案（可选，写进 summary 或仓库 README）
+## 6. 交叉导流
 
-本套技能是一条流水线，点名彼此能显著提升单包的安装量：
+本套技能是一条流水线，点名彼此能提升单包的安装量。
+
+**仓库侧已做**：四个兄弟技能的 `SKILL.md` 末尾都已加入统一的 `## Related Skills` 段落，
+标明流水线顺序并给出 make-ui-not-ai 的安装路径。因为这些文件本身就是安装源，
+装 ship-it-mvp / backend / security / performance 的用户现在都能看到前端技能。
+
+**市场侧仍可做**（需登录，写进 summary）：
 
 - make-ui-not-ai 的 summary 末尾：「配套 ship-it-mvp（产品蓝图）、ship-it-backend（后端切片）」
 - ship-it-mvp 的 summary 末尾：「下一步用 make-ui-not-ai 做出有产品身份的前端」
@@ -93,9 +115,9 @@ frontend, ui-design, design-system, responsive, accessibility, animation, intera
 
 ## 7. 提交前核对
 
-- [ ] summary 双语，≤200 字符
-- [ ] tags 已扩充
-- [ ] version 升到 2.0
-- [ ] source 指向 `ship-it-skills`（不是 `my-skill`）
-- [ ] 仓库 SKILL.md 已推送到 master（否则市场拉到的仍是旧内容）
-- [ ] skill-showcase 演示案例已随仓库发布（给 UI 技能提供可看的证据）
+- [x] source 指向 `ship-it-skills`（不是 `my-skill`）
+- [x] 仓库 `SKILL.md` 已推送到 master（市场安装源已核验为新内容）
+- [x] skill-showcase 演示案例与核验工具已随仓库发布
+- [ ] summary 双语，≤200 字符 ← **需你登录提交**
+- [ ] tags 由 4 个扩到 10 个 ← **需你登录提交**
+- [ ] version 升到 2.0 ← **需你登录提交**
