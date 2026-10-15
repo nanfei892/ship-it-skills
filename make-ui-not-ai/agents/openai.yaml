@@ -1,4 +1,4 @@
 interface:
   display_name: "Make UI, Not AI"
   short_description: "Design, render, critique, and refine product-specific UI"
-  default_prompt: "Use $make-ui-not-ai to set an evidence-backed visual direction, render an early checkpoint, and refine this interface through screenshot-based critique."
+  default_prompt: "Use $make-ui-not-ai to set an evidence-backed visual direction, render an early checkpoint, and refine this interface through image critique and measurements taken at the real viewport width."
