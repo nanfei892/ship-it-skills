@@ -362,7 +362,7 @@ Lead with the resulting product direction and what now works. Report:
 
 1. the evidence-backed visual premise;
 2. the representative slice and core workflow completed;
-3. the screenshots and viewports actually inspected;
+3. the screenshots and viewports actually inspected, stating the confirmed layout width for any narrow check;
 4. functional checks run separately from visual review;
 5. material contract deviations or remaining limitations.
 
