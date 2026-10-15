@@ -21,17 +21,20 @@ one direction, not four — the skill's Section 3 exists to prevent exactly that
 
 ## Verified results
 
-Measured in-browser at the stated viewports:
+Measured in-browser at the stated viewports. The `390×844` column figures were re-measured at a genuine
+390px layout viewport after the screenshot-pipeline defect described under the cold transfer test.
 
 | Check | a-expressive | b-operational | c-content-led |
 | --- | --- | --- | --- |
 | Desktop 1440×900 | [PNG](shots/a-expressive-desktop-1440x900.png) | [PNG](shots/b-operational-desktop-1440x900.png) | [PNG](shots/c-content-led-desktop-1440x900.png) |
 | Mobile 390×844 | [PNG](shots/a-expressive-mobile-390x844.png) | [PNG](shots/b-operational-mobile-390x844.png) | [PNG](shots/c-content-led-mobile-390x844.png) |
 | Body measure (desktop) | — | — | 504px, 18px/35.1px, ~23.2 CJK chars/line |
-| Body measure (mobile) | — | — | 350px, 17px, ~19.3 CJK chars/line |
+| Horizontal overflow @390 | 0px | 0px | 0px |
+| Document `scrollWidth` @390 | = viewport | = viewport | `390` |
+| Smallest rendered text @390 | — | — | 14px |
+| Smallest hit dimension @390 | ≥44px | ≥44px | 44px |
 | `transition: all` occurrences | 0 | 0 | 0 |
 | Focus ring | 2px + 2px offset | 2px + 2px offset | 2px `rgb(122,36,32)` + 2px offset |
-| Hit areas ≥44px | yes | yes | yes |
 
 ## Defects found by looking at renders
 
@@ -56,15 +59,101 @@ opening the captured image or probing the live DOM:
    build used `#F4F2ED` — two hex digits away, visually identical — while explicitly reporting that
    `#F4F1EA` had been avoided. → became the skill's **"Ban the property, not the hex string."**
 
+## Cold transfer test
+
+The three pages above were built while the skill was being written, by agents that already knew where the
+work was heading. That is not a fair test of whether the skill *transfers*. So two further pages were
+commissioned from agents that were given only `SKILL.md` and a brief, and were explicitly forbidden from
+reading this directory:
+
+| Test | Brief | Result |
+| --- | --- | --- |
+| Content-led | Landing page for 夜读, a personal reading journal. A brief that strongly invites the banned warm-editorial cluster. | **Passed.** Cool paper `#EDF1EF`, bottle-green accent `#0E5C4C`, 20 distinct hex values, **zero banned-color hits**. |
+| Operational | Main console for 风控台, a fintech risk-analyst tool with a queue, a detail panel, and analyst actions. | **Desktop strong, narrow width failed.** 39 distinct hex values, zero banned-color hits, genuinely dense and product-specific at `1440×900` — but see below. |
+
+This is the most useful evidence in this directory, because both tests found something:
+
+**The ban list works.** Neither build reached for warm cream paper, terracotta, acid dark, or any other
+named default — not even the one whose brief made warm-editorial the natural choice. Naming specific
+refusals diverted both builds.
+
+**The ban list can still be satisfied while one cluster member survives.** The 夜读 build took the
+high-contrast serif display face (Songti SC) from the warm-editorial cluster while dropping the warm paper
+and the terracotta accent. On cool paper with a green accent that is a defensible literary direction, not
+the banned cluster — but it shows the cluster is composable, which is why Section 2 states the pattern
+rather than the hex.
+
+**A mobile strategy can exist in the CSS and be unreachable in practice.** The 风控台 console fails at
+narrow width, and it fails in a more interesting way than "nobody wrote a breakpoint". It has a deliberate
+mobile design: a `.rail-sel` filter dropdown, a `.filtersheet` that becomes an overlay, and a `.detail`
+full-screen drill-in with a back button and Escape handling. Three separate defects stop it working, and
+each was invisible from the source alone:
+
+1. **The mobile trigger is never rendered.** `.rail-sel` is `display: none` and no rule or script ever
+   enables it. Meanwhile the media query `(max-width: 1429px) and (max-height: 1000px)` makes
+   `.filtersheet` `position: absolute; inset: 0`, so at narrow width the filter sheet sits permanently on
+   top of the workspace. Measured at a true `390×844`: `.filtersheet` is `390×810` covering the shell,
+   `.rail-sel` is `0×0`, and the alert queue — the primary work surface — is `300px` wide behind it.
+2. **The container queries that should recompose the grid are self-referential.** Two rules read
+   `@container work (max-width: 1079px)` and `@container work (min-width: 1430px)`, but `container-name:
+   work` is declared *on* `.workspace` and both rules target `.workspace` itself. A container query cannot
+   style its own container, so neither rule ever applies and `grid-template-columns` stays at the base
+   `300px minmax(0, 1fr)` — `300px 90px` in a `390px` viewport.
+3. **There is horizontal overflow.** `document.scrollWidth` is `414` against a `390` viewport. The
+   offending elements are the appbar's `推送失败` tally button (`left=394 right=414`) and a `<b>` inside it.
+   The same element is the smallest hit target on the page at `20px`.
+
+Nothing in a build log, a type check, or a wide screenshot reveals any of this. Only rendering at a real
+narrow width and measuring the result does.
+
+**The screenshot tool was lying about the viewport.** While investigating the above, the captures were
+checked against what the page thought its own width was, and the answer was `500`, not `390`. Headless
+Chrome clamps an OS window to a minimum width, so `--window-size=390,844` lays the page out at `500` CSS px
+and then scales the capture down to a 390px PNG. Every "390×844" screenshot in this repository before that
+discovery was rendered at `500` CSS px, so no narrow-width media query below 500px had ever actually run.
+The fix is `shot2.ps1`, which renders the page inside a fixed-width iframe — an iframe gets a true layout
+viewport of its own — and crops the result; it was verified against a page that reports `innerWidth` and
+asserts that a `max-width: 400px` query matched. All narrow screenshots here were re-captured with it, and
+the three pages above were re-inspected at a genuine `390×844`. They pass.
+
+That is the same failure the skill warns about, one level up: the artifact existed, it was named correctly,
+and it was not what it claimed to be.
+
+**What the tests changed in the skill.** Section 8 gained three rules from this round — *"A narrow
+screenshot is not proof of a narrow layout"*, *"A container query cannot style its own container"*, and
+*"An overlay needs a trigger that is actually rendered"* — plus the Section 5 requirement to name which
+surface owns the phone viewport and the Product Interface Reference's instruction to treat the narrow
+master-detail case as a composition problem. The Section 2 ban list also gained pill-shaped buttons for
+ordinary actions, after the 夜读 landing page used them freely.
+
 ## Reproducing the screenshots
 
 ```powershell
-pwsh -File shot.ps1 -Html a-expressive\index.html -Out shots\a.png -Width 1440 -Height 900
-pwsh -File shot.ps1 -Html a-expressive\index.html -Out shots\a-mobile.png -Width 390 -Height 844
+# desktop: window width is above the clamp, either script is fine
+pwsh -File shot2.ps1 -Html a-expressive\index.html -Out shots\a-desktop.png -Width 1440 -Height 900
+
+# narrow: MUST use shot2.ps1, or the page is laid out at the clamped width instead
+pwsh -File shot2.ps1 -Html a-expressive\index.html -Out shots\a-mobile.png -Width 390 -Height 844
 ```
 
-`shot.ps1` drives headless Chrome or Edge directly (`--headless=new`, fixed device scale, virtual time
-budget) so no browser-automation dependency is needed.
+Both scripts drive headless Chrome or Edge directly (`--headless=new`, fixed device scale, virtual time
+budget) so no browser-automation dependency is needed. Use `shot2.ps1` for anything narrower than about
+`520px`: it embeds the page in a fixed-width iframe, which gets its own true layout viewport, and crops the
+capture to that region. `shot.ps1` remains useful for wide viewports and as the simpler reference
+implementation.
+
+`measure.ps1` answers the question a screenshot cannot: what did the browser actually lay out? It renders
+the page at a true fixed viewport width and reports `window.innerWidth`, horizontal overflow and the
+elements causing it, the computed box of every major region, the smallest rendered text, the smallest
+interactive dimension, and whether any element has an active `transition: all` — without producing or
+reading an image.
+
+```powershell
+pwsh -File measure.ps1 -Html c-content-led\index.html -Width 390 -Height 844
+```
+
+Always confirm `VIEWPORT` in its output matches the width you asked for. If it does not, your screenshot
+tool is lying to you.
 
 ## Marketplace copy
 
