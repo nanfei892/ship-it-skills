@@ -42,9 +42,10 @@ Turns "build me an X" into a **decision-ready MVP blueprint**: a focused product
 
 ### make-ui-not-ai — Frontend
 
-Build, redesign, or review frontend interfaces so they **have a clear product identity** instead of coming from a generic AI template. Read the product before styling (design contract: product signal, information shape, visual premise, type / color / geometry, signature decision), implement the real interface, then run a deliberate second pass to remove template tells (stat strips, bento card walls, gratuitous gradients and glass, uniform spacing and animation…), verify at real viewports, and pass a 7-point finish gate (Specific / Useful / Complete / Coherent / Responsive / Accessible / Verified).
+Build, redesign, or review frontend interfaces so they **have a clear product identity** instead of coming from a generic AI template. The core is a **ban list that grows**: telling a model to "avoid the AI look" merely swaps one default for another, so the skill names the specific patterns to refuse (warm cream plus serif display plus terracotta, the SaaS rounded-card kit, `01/02/03` numbering, pill buttons, rainbow gradients…) and extends the list after inspecting the first render. It ships a **canonical values table** (transition durations, `scale(0.96)` press feedback, the concentric-radius formula, 44px hit areas, focus rings, icon stroke weights, tabular-nums) and separates *functionally verified* from *visually verified* using independent critique and real screenshots.
 
 - Example trigger: "Make this page feel like a real product, not an AI template"
+- Also for polish work: "this button feels wrong" / "check the hierarchy and spacing"
 
 ### ship-it-backend — Backend
 
@@ -90,14 +91,14 @@ Typical scenario — "I want to build a 'what should I eat tonight' app":
 
 Send this to your agent (swap the path for the skill you want):
 
-> Please install this skill: https://github.com/nanfei892/my-skill/tree/main/ship-it-mvp
+> Please install this skill: https://github.com/nanfei892/ship-it-skills/tree/master/make-ui-not-ai
 
 If your environment doesn't support automatic skill installation, download the corresponding `SKILL.md` into your agent's skills directory and use it as a rules file (same instructions, loaded manually).
 
 ### Option 2: Manual clone
 
 ```bash
-git clone git@github.com:nanfei892/my-skill.git
+git clone git@github.com:nanfei892/ship-it-skills.git
 ```
 
 Then copy or symlink the skill directories you need into your agent's skills directory, e.g.:
