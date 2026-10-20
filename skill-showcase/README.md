@@ -159,6 +159,32 @@ master-detail case as a composition problem. The Hand Off checklist now requires
 layout width for any narrow check. The Section 2 ban list also gained pill-shaped buttons for ordinary
 actions, after the 夜读 landing page used them freely.
 
+## Coverage probe — a cheaper, better validation instrument
+
+Building a page is a poor way to find out whether a skill *says* what it needs to say. Three of four
+build-based subagent tests in this project exhausted their context before reporting; the pages were large,
+the verification was heavy, and the useful signal was buried.
+
+A much smaller instrument worked better. Ask a fresh agent to read only `SKILL.md` and answer, for a
+specific brief, *"quote the line that tells you what to do for each of these seven questions, or say
+`NOT COVERED`."* No files written, no screenshots. It takes minutes, cannot run out of room, and returns a
+precise gap list with line numbers.
+
+Run against a clinic **appointment-booking form** — a surface none of the four showcase pages exercised —
+it found the skill silent on validation timing, on what a destructive confirmation must contain, on
+multi-step state retention, and on success-state content. It also showed that the one form bullet that did
+exist sat buried inside the accessibility list, unreachable from the scope table's routing. That produced
+the new `Forms and destructive actions` subsection.
+
+Running the same probe again against the revised skill found four defects *in the new text* — most usefully
+that the skill said both "forms submit on Enter" and "the safe action is the default in a confirmation",
+which together let Enter cancel a real appointment. A third pass confirmed the fixes and caught two more:
+the canonical values table had no *busy* variant, so a dimmed in-flight button was indistinguishable from a
+disabled one, and the dismissal button in a Chinese cancellation dialog is labelled 取消 — the same verb as
+取消预约, making the safe action look destructive.
+
+Three passes, no page built, and every finding was a real defect. That is a better return than the builds.
+
 ## Reproducing the screenshots
 
 ```powershell
