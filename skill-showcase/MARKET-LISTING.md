@@ -100,12 +100,18 @@ frontend, ui-design, design-system, responsive, accessibility, animation, intera
 | ship-it-backend | `nanfei892` | `ship-it-skills` | 正确 |
 | ship-it-mvp | `1981094442` | `my-skill`（旧名） | **handle 与仓库都过期** |
 
-`ship-it-mvp` 有 782 次安装，是第 4 名。它挂在旧 handle 下、指向已改名的仓库，
-既无法与另外两个技能互相导流，也可能因仓库改名导致安装失败。
+`ship-it-mvp` 有 791 次安装，是第 4 名。它挂在旧 handle `1981094442` 下、source 写的是改名前仓库 `my-skill` 的路径。
 
-**建议**：把 `ship-it-mvp` 重新发布到 `nanfei892` handle 下、源指向
-`https://github.com/nanfei892/ship-it-skills/blob/master/ship-it-mvp/SKILL.md`，
-并在三个技能的 summary 里互相点名（见下）。
+**已实测核对，修正此前的判断——这不影响安装，也不丢导流**：
+
+- `https://raw.githubusercontent.com/nanfei892/my-skill/master/ship-it-mvp/SKILL.md` 返回 **200**，GitHub 把旧仓库名重定向到了 `ship-it-skills`
+- 该地址返回的内容与本地 `ship-it-mvp/SKILL.md` **逐字符一致**（4979 字符），也就是说上一轮加的 `## Related Skills` 互引**已经对这 791 个安装者生效**
+
+所以剩余问题只有一个，属于整洁性而非功能性：市场列表页会把这个包显示在 `1981094442` 名下、并展示旧仓库路径。
+
+**建议（可选，优先级低于改 summary/tags）**：重新发布到 `nanfei892` handle 下、source 指向
+`https://github.com/nanfei892/ship-it-skills/blob/master/ship-it-mvp/SKILL.md`。收益是署名统一而不是安装量；
+若嫌麻烦，保持现状也不会坏。
 
 ---
 

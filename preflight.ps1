@@ -102,6 +102,55 @@ foreach ($p in $patterns) {
 if ($found.Count -eq 0) { Ok 'no verification scratch files present' }
 else { Bad "scratch files present:`n    $($found -join "`n    ")" }
 
+# ---------------------------------------------------------------- family install sources
+if (-not $SkipRemote) {
+    Head 'family install sources'
+    $ua0 = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
+    function Normalize([string]$s) { ($s -replace "`r`n", "`n").TrimEnd() }
+    function ShaOf([string]$s) {
+        $b = [System.Text.Encoding]::UTF8.GetBytes($s)
+        (([System.Security.Cryptography.SHA256]::Create().ComputeHash($b)) | ForEach-Object { $_.ToString('x2') }) -join ''
+    }
+    foreach ($s in $skills) {
+        $url = "https://raw.githubusercontent.com/nanfei892/ship-it-skills/master/$($s.Name)/SKILL.md"
+        try {
+            $live = Normalize (Invoke-WebRequest -Uri $url -Headers @{ 'User-Agent' = $ua0 } -UseBasicParsing).Content
+            $mineTxt = Normalize (Get-Content -LiteralPath (Join-Path $s.FullName 'SKILL.md') -Raw)
+            if ((ShaOf $live) -eq (ShaOf $mineTxt)) {
+                Ok "$($s.Name): install source matches this repo"
+            } else {
+                Warn "$($s.Name): install source differs from this repo ($($live.Length) vs $($mineTxt.Length) chars) - the registry may be serving a stale copy"
+            }
+        } catch {
+            Bad "$($s.Name): install source unreachable ($url)"
+        }
+    }
+
+    # a package may be registered under a different handle or a renamed repo; GitHub
+    # redirects, so installs still work, but it is untidy and worth knowing about
+    try {
+        $pkgs = (Invoke-RestMethod -Uri 'https://crash.reasonix.io/v1/packages?kind=skill&limit=100' `
+                   -Headers @{ 'User-Agent' = $ua0 }).packages
+        $ours = $pkgs | Where-Object { $_.handle -in @('nanfei892', '1981094442') }
+        foreach ($p in $ours) {
+            $det = Invoke-RestMethod -Uri "https://crash.reasonix.io/v1/packages/$($p.handle)/$($p.name)" `
+                     -Headers @{ 'User-Agent' = $ua0 }
+            $v = $det.versions | Where-Object { $_.version -eq $p.latestVersion } | Select-Object -First 1
+            $src = if ($v) { $v.source } else { $det.versions[0].source }
+            $issues = @()
+            if ($p.handle -ne 'nanfei892') { $issues += "handle is '$($p.handle)'" }
+            if ($src -notmatch '/ship-it-skills/') { $issues += "source uses an old repo path" }
+            if ($issues.Count -eq 0) {
+                Ok "$($p.name): registered under nanfei892, source current"
+            } else {
+                Warn "$($p.name) [$($p.installCount) installs]: $($issues -join '; ') - installs still resolve via GitHub redirect, so this is tidiness, not breakage"
+            }
+        }
+    } catch {
+        Warn "could not list registry packages: $($_.Exception.Message)"
+    }
+}
+
 # ---------------------------------------------------------------- marketplace
 if (-not $SkipRemote) {
     Head 'marketplace and install source'
