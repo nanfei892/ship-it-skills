@@ -1,0 +1,958 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>安和诊所 预约挂号</title>
+<!--
+DIRECTION (Section 3) — written before the CSS.
+
+  Surface class: transactional form flow. Audience: neighbourhood-clinic patients,
+  many of them on a phone, some anxious about getting an appointment at all.
+  The object of the page is a commitment: a person, a time, a doctor. So the page
+  should read like a counter form that a calm person fills in for you — every
+  field labelled in words, every state spelled out, nothing hidden behind a glyph.
+
+  Rejected: (a) the warm cream + serif "care brand" look, because it is Section 2's
+  first banned cluster and it also makes a medical booking feel like a lifestyle
+  article; (b) a teal-to-blue gradient hero with three rounded feature cards,
+  because that is the SaaS card kit and it delays the one thing the user came for.
+
+  1. Evidence. Patients arrive knowing roughly what is wrong and when they can come;
+     the scarce resource is a specific doctor's slot today. They read on a phone,
+     one-handed, and they need to know what to type and what happens next.
+  2. Interface premise. A clinic counter, not a health app: white paper, one calm
+     teal for the action, plain words for every state, and the slot grid as the
+     single most prominent object on the screen.
+  3. Dials. Expressiveness low; density normal; contrast high for text / low for
+     surfaces; geometry mixed ladder (4px inputs, 6px cards, no pills on ordinary
+     buttons); motion quiet — state changes only, 150ms, no entrance choreography.
+  4. Composition. One column, max 640px, centred, generous vertical rhythm. The
+     slot grid dominates step 1. Steps are named in words with a thin progress
+     rule, never big 01/02/03 numerals.
+  5. Type and colour roles. One CJK system stack for everything readable; a mono
+     face reserved for times, slot numbers, and the booking id, with tabular-nums.
+     Palette: ink #16202B, secondary #4A5A68, line #DBE2E7, wash #F4F7F8,
+     accent #0E6E6E, danger #A3231A. Semantic colours are paired with words.
+  6. Distinctive move. The chosen appointment is always shown as a "counter slip":
+     a bordered block whose top rule is the clinic's, and whose content is exactly
+     the five facts you would repeat at the desk.
+  7. Rejection. The tempting generic choice here is a card-per-department wall with
+     icons; it hides the time axis, which is the only thing the user is deciding.
+-->
+<style>
+  :root {
+    /* palette: 4 ink values + 1 wash + 2 semantics. every value in this file traces here. */
+    --ink:       #16202B;
+    --ink-2:     #4A5A68;
+    --ink-3:     #5F6E7A;
+    --line:      #DBE2E7;
+    --line-soft: #EDF1F3;
+    --paper:     #FFFFFF;
+    --wash:      #F4F7F8;
+    --accent:    #0E6E6E;
+    --accent-ink:#0A5555;
+    --accent-wash:#EAF3F2;
+    --danger:    #A3231A;
+    --danger-wash:#FBEEEC;
+    --warn-ink:  #7A4A00;
+    --warn-wash: #FDF3E4;
+
+    /* spacing: 4px base */
+    --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:20px; --s6:24px; --s8:32px; --s10:40px; --s12:48px;
+
+    /* radius ladder: one rung per object class. no pills on ordinary actions. */
+    --r-in:4px; --r-card:6px;
+
+    /* one elevation system: a ring, never a soft grey drop shadow */
+    --ring: 0 0 0 1px rgba(22,32,43,0.09);
+
+    /* motion: state only, one easing, explicit properties */
+    --ease: cubic-bezier(0.2,0,0,1);
+    --dur: 150ms;
+
+    --font: system-ui,-apple-system,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    --mono: ui-monospace,SFMono-Regular,"SF Mono",Consolas,"Liberation Mono",monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0;
+    background: var(--wash);
+    color: var(--ink);
+    font: 16px/1.65 var(--font);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .shell { max-width: 640px; margin: 0 auto; padding: var(--s6) var(--s4) var(--s12); }
+  @media (min-width: 720px) { .shell { padding-top: var(--s10); } }
+
+  /* ---------- masthead ---------- */
+  .mast { display: flex; align-items: baseline; gap: var(--s3); padding-bottom: var(--s4); }
+  .mast__name { font-size: 19px; font-weight: 650; letter-spacing: 0.01em; }
+  .mast__dept { font-size: 14px; color: var(--ink-3); }
+  .mast__tel { margin-left: auto; font-size: 14px; }
+  .mast__tel a { color: var(--accent-ink); text-decoration: none; font-variant-numeric: tabular-nums;
+                 display: inline-block; padding: 14px 0; margin: -14px 0; }
+  .mast__tel a:hover { text-decoration: underline; }
+  .mast__tel a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+
+  /* ---------- steps: named in words, with a thin rule. never large numerals. ---------- */
+  .steps { display: flex; align-items: center; gap: var(--s2); margin: 0 0 var(--s6); }
+  .steps__label { font-size: 13px; color: var(--ink-3); white-space: nowrap; }
+  .steps__label[data-on="1"] { color: var(--accent-ink); font-weight: 600; }
+  .steps__rule { flex: 1; height: 2px; background: var(--line); border-radius: 2px; position: relative; overflow: hidden; }
+  .steps__fill { position: absolute; inset: 0 auto 0 0; background: var(--accent); width: 0; transition: width var(--dur) var(--ease); }
+
+  /* ---------- panels ---------- */
+  .panel {
+    background: var(--paper);
+    border-radius: var(--r-card);
+    box-shadow: var(--ring);
+    padding: var(--s6) var(--s5);
+  }
+  @media (min-width: 720px) { .panel { padding: var(--s8) var(--s6); } }
+
+  .panel + .panel { margin-top: var(--s4); }
+
+  h1 { font-size: 22px; line-height: 1.35; margin: 0 0 var(--s2); font-weight: 650; letter-spacing: 0.005em; }
+  h2 { font-size: 16px; margin: 0 0 var(--s3); font-weight: 650; }
+  .lede { margin: 0 0 var(--s5); color: var(--ink-2); font-size: 15px; line-height: 1.7; max-width: 46ch; }
+  .hint { margin: 0; color: var(--ink-3); font-size: 14px; line-height: 1.6; }
+
+  /* ---------- fieldset / legend for the slot grids ---------- */
+  .field { margin: 0 0 var(--s5); padding: 0; border: 0; }
+  .field:last-child { margin-bottom: 0; }
+  .field__label { display: block; font-size: 14px; font-weight: 600; margin: 0 0 var(--s2); padding: 0; }
+
+  /* department choice: two rows of ordinary buttons, 44px min, no pills */
+  .depts { display: flex; flex-wrap: wrap; gap: var(--s2); }
+  .dept {
+    font: inherit; font-size: 15px;
+    min-height: 44px; padding: 0 var(--s4);
+    background: var(--paper); color: var(--ink);
+    border: 1px solid var(--line); border-radius: var(--r-in);
+    cursor: pointer;
+    transition-property: border-color, background-color, color;
+    transition-duration: var(--dur); transition-timing-function: var(--ease);
+  }
+  .dept:hover { border-color: var(--ink-3); }
+  .dept:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .dept[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-wash); color: var(--accent-ink); font-weight: 600; }
+
+  /* ---------- the slot grid: the most prominent object in step 1 ---------- */
+  .slots { display: grid; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: var(--s2); }
+  /* at phone width, four slots would leave a single orphan on a second row;
+     two even columns read as a grid instead */
+  @media (max-width: 420px) { .slots { grid-template-columns: repeat(2, 1fr); } }
+  .slot {
+    font: inherit; font-size: 15px;
+    min-height: 48px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+    background: var(--paper); color: var(--ink);
+    border: 1px solid var(--line); border-radius: var(--r-in);
+    cursor: pointer;
+    font-variant-numeric: tabular-nums;
+    transition-property: border-color, background-color;
+    transition-duration: var(--dur); transition-timing-function: var(--ease);
+  }
+  .slot__time { font-family: var(--mono); font-size: 15px; }
+  .slot__doc { font-size: 13px; color: var(--ink-3); }
+  .slot:hover:not(:disabled) { border-color: var(--ink-3); }
+  .slot:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .slot[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-wash); }
+  .slot[aria-pressed="true"] .slot__doc { color: var(--accent-ink); }
+  .slot:disabled { cursor: not-allowed; opacity: 0.6; background: var(--wash); }
+  .slot[data-taken="1"] .slot__time { text-decoration: line-through; }
+
+  /* ---------- notices: cause first, then the way forward ---------- */
+  .notice {
+    display: flex; gap: var(--s3);
+    padding: var(--s3) var(--s4);
+    border-radius: var(--r-card);
+    font-size: 14px; line-height: 1.6;
+    margin: 0 0 var(--s4);
+  }
+  .notice__body { min-width: 0; }
+  .notice__title { font-weight: 650; margin: 0 0 2px; }
+  .notice__text { margin: 0; }
+  .notice--warn { background: var(--warn-wash); color: var(--warn-ink); }
+  .notice--conflict { background: var(--danger-wash); color: var(--danger); }
+
+  /* ---------- empty state: why, plus the way out ---------- */
+  .empty { border: 1px dashed var(--line); border-radius: var(--r-card); padding: var(--s5); text-align: left; }
+  .empty__title { margin: 0 0 var(--s2); font-weight: 650; font-size: 15px; }
+  .empty__text { margin: 0 0 var(--s3); color: var(--ink-2); font-size: 14px; line-height: 1.65; }
+  .empty__next { margin: 0; font-size: 14px; }
+  .empty__next strong { font-variant-numeric: tabular-nums; }
+
+  /* ---------- form fields ---------- */
+  .lbl { display: block; font-size: 14px; font-weight: 600; margin: 0 0 var(--s2); }
+  .lbl__opt { font-weight: 400; color: var(--ink-3); }
+  .input {
+    width: 100%; min-height: 44px;
+    font: inherit; font-size: 16px; color: var(--ink);
+    padding: 10px var(--s3);
+    background: var(--paper);
+    border: 1px solid var(--line); border-radius: var(--r-in);
+    transition-property: border-color, box-shadow;
+    transition-duration: var(--dur); transition-timing-function: var(--ease);
+  }
+  .input::placeholder { color: var(--ink-3); }
+  .input:hover { border-color: var(--ink-3); }
+  .input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-wash); }
+  .input[aria-invalid="true"] { border-color: var(--danger); }
+  .input[aria-invalid="true"]:focus { box-shadow: 0 0 0 3px var(--danger-wash); }
+  textarea.input { min-height: 88px; resize: vertical; line-height: 1.6; }
+
+  .err {
+    display: none;
+    margin: var(--s2) 0 0;
+    font-size: 14px; line-height: 1.5;
+    color: var(--danger);
+  }
+  .err[data-on="1"] { display: flex; gap: 6px; align-items: flex-start; }
+  .err__mark { flex: none; font-weight: 700; }
+
+  .field-row { margin: 0 0 var(--s5); }
+
+  /* ---------- actions ---------- */
+  .actions { display: flex; flex-wrap: wrap; gap: var(--s2); margin-top: var(--s6); }
+  .actions--end { justify-content: flex-end; }
+  .btn {
+    font: inherit; font-size: 15px; font-weight: 600;
+    min-height: 44px; padding: 0 var(--s5);
+    border-radius: var(--r-in); border: 1px solid transparent;
+    cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center; gap: var(--s2);
+    transition-property: background-color, border-color, color;
+    transition-duration: var(--dur); transition-timing-function: var(--ease);
+  }
+  .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .btn--primary { background: var(--accent); color: #fff; }
+  .btn--primary:hover:not(:disabled) { background: var(--accent-ink); }
+  .btn--quiet { background: var(--paper); color: var(--ink); border-color: var(--line); }
+  .btn--quiet:hover:not(:disabled) { border-color: var(--ink-3); }
+  .btn--danger { background: var(--danger); color: #fff; }
+  .btn--danger:hover:not(:disabled) { background: #8A1C15; }
+  .btn--link { background: none; color: var(--accent-ink); padding: 0; min-height: 44px; text-decoration: underline; text-underline-offset: 3px; }
+  .btn--link:hover { color: var(--accent); }
+
+  /* busy: reads as busy, not as unavailable. never opacity alone. */
+  .btn:disabled { cursor: not-allowed; }
+  .btn:disabled:not([data-busy="1"]) { opacity: 0.6; }
+  .btn[data-busy="1"] { cursor: progress; }
+  .btn[data-busy="1"] .btn__label { opacity: 0.82; }
+  .spinner {
+    width: 14px; height: 14px; flex: none;
+    border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%;
+    animation: spin 700ms linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) {
+    .spinner { animation-duration: 2400ms; }
+    .steps__fill, .dept, .slot, .input, .btn { transition-duration: 1ms; }
+  }
+
+  /* ---------- the counter slip: what you would repeat at the desk ---------- */
+  .slip { border: 1px solid var(--line); border-radius: var(--r-card); overflow: hidden; }
+  .slip__top { height: 3px; background: var(--accent); }
+  .slip__body { padding: var(--s4) var(--s5); }
+  .slip__id { font-family: var(--mono); font-size: 13px; color: var(--ink-3); letter-spacing: 0.02em; margin: 0 0 var(--s3); font-variant-numeric: tabular-nums; }
+  .slip__when { margin: 0 0 var(--s1); font-size: 20px; font-weight: 650; line-height: 1.35; font-variant-numeric: tabular-nums; }
+  .slip__who { margin: 0 0 var(--s4); color: var(--ink-2); font-size: 15px; }
+  .facts { margin: 0; display: grid; grid-template-columns: 5.5em 1fr; gap: var(--s2) var(--s3); font-size: 15px; }
+  .facts dt { color: var(--ink-3); }
+  .facts dd { margin: 0; font-variant-numeric: tabular-nums; }
+
+  .review { margin: 0 0 var(--s5); display: grid; grid-template-columns: 5.5em 1fr; gap: var(--s3) var(--s3); font-size: 15px; }
+  .review dt { color: var(--ink-3); }
+  .review dd { margin: 0; font-variant-numeric: tabular-nums; }
+
+  .done-head { display: flex; align-items: flex-start; gap: var(--s3); margin: 0 0 var(--s4); }
+  .done-head h1 { margin: 0 0 var(--s1); }
+  .tick { flex: none; width: 22px; height: 22px; color: var(--accent); margin-top: 3px; }
+
+  /* ---------- dialog: object + consequence, safe action focused ---------- */
+  .scrim[hidden] { display: none; }
+  .scrim {
+    position: fixed; inset: 0; z-index: 20;
+    background: rgba(22,32,43,0.42);
+    display: flex; align-items: center; justify-content: center;
+    padding: var(--s4);
+  }
+  .dialog {
+    background: var(--paper); border-radius: var(--r-card);
+    box-shadow: 0 0 0 1px rgba(22,32,43,0.12), 0 18px 40px -18px rgba(22,32,43,0.45);
+    width: 100%; max-width: 420px;
+    padding: var(--s6) var(--s5);
+  }
+  .dialog h2 { margin: 0 0 var(--s3); font-size: 17px; line-height: 1.5; }
+  .dialog p { margin: 0 0 var(--s5); font-size: 15px; line-height: 1.65; color: var(--ink-2); }
+  .dialog .actions { margin-top: 0; }
+  .dialog .btn { flex: 1 1 auto; }
+
+  .sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+  .stack > * + * { margin-top: var(--s5); }
+
+  /* hidden steps never take focus or space */
+  [data-step] { display: none; }
+  [data-step][data-on="1"] { display: block; }
+
+  /* step headings receive programmatic focus so screen readers announce the new step.
+     They are not interactive, so they must not paint a focus ring. */
+  [tabindex="-1"]:focus { outline: none; }
+
+  footer.terms { margin-top: var(--s6); color: var(--ink-3); font-size: 13px; line-height: 1.7; }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <div class="mast">
+    <span class="mast__name">安和诊所</span>
+    <span class="mast__dept">望京店门诊</span>
+    <span class="mast__tel"><a href="tel:01064701234">010-6470 1234</a></span>
+  </div>
+
+  <div class="steps" aria-hidden="true">
+    <span class="steps__label" data-on="1" id="stepLabel1">选择时间</span>
+    <span class="steps__rule"><span class="steps__fill" id="stepFill"></span></span>
+    <span class="steps__label" id="stepLabel2">填写信息</span>
+    <span class="steps__rule"><span class="steps__fill" id="stepFill2"></span></span>
+    <span class="steps__label" id="stepLabel3">确认</span>
+  </div>
+  <p class="sr" id="stepStatus" role="status" aria-live="polite"></p>
+
+  <!-- ============ STEP 1: time ============ -->
+  <section class="panel" data-step="1" data-on="1" id="step1" aria-labelledby="h1">
+    <h1 id="h1">今天还有号，选一个时间</h1>
+    <p class="lede">号源是当天实时的。选好后填三项信息，到柜台报预约号即可。</p>
+
+    <div id="conflictBox" hidden></div>
+
+    <fieldset class="field">
+      <legend class="field__label">看哪个科</legend>
+      <div class="depts" id="depts" role="group" aria-label="科室"></div>
+    </fieldset>
+
+    <div class="field">
+      <span class="field__label" id="slotsLabel">今天的号</span>
+      <div id="slotsHost" aria-labelledby="slotsLabel"></div>
+    </div>
+
+    <div class="actions actions--end">
+      <button type="button" class="btn btn--primary" id="toStep2" disabled>下一步：填写信息</button>
+    </div>
+  </section>
+
+  <!-- ============ STEP 2: patient info ============ -->
+  <section class="panel" data-step="2" id="step2" aria-labelledby="h2step2">
+    <h2 id="h2step2" style="font-size:22px;line-height:1.35;">就诊人信息</h2>
+    <p class="lede">姓名和手机号用来核对身份。备注可以不填。</p>
+
+    <form id="form" novalidate>
+      <div class="field-row">
+        <label class="lbl" for="name">姓名</label>
+        <input class="input" id="name" name="name" type="text" autocomplete="name"
+               placeholder="与身份证一致" aria-describedby="nameErr">
+        <p class="err" id="nameErr" data-on="0"></p>
+      </div>
+
+      <div class="field-row">
+        <label class="lbl" for="phone">手机号</label>
+        <input class="input" id="phone" name="phone" type="tel" inputmode="numeric"
+               autocomplete="tel" placeholder="11 位手机号" aria-describedby="phoneErr">
+        <p class="err" id="phoneErr" data-on="0"></p>
+      </div>
+
+      <div class="field-row">
+        <label class="lbl" for="note">备注 <span class="lbl__opt">（选填）</span></label>
+        <textarea class="input" id="note" name="note" rows="3"
+                  placeholder="例如：复诊、行动不便需要协助" aria-describedby="noteHelp"></textarea>
+        <p class="hint" id="noteHelp" style="margin-top:8px;">如果有发热或外伤，请在到店前先打电话。</p>
+      </div>
+
+      <div class="actions actions--end">
+        <button type="button" class="btn btn--quiet" id="back1">返回选时间</button>
+        <button type="submit" class="btn btn--primary" id="toStep3">下一步：确认</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- ============ STEP 3: confirm ============ -->
+  <section class="panel" data-step="3" id="step3" aria-labelledby="h3step3">
+    <h2 id="h3step3" style="font-size:22px;line-height:1.35;">确认这次预约</h2>
+    <p class="lede">提交后号源会被锁定。取消需要提前 2 小时。</p>
+
+    <dl class="review" id="review"></dl>
+
+    <div class="actions actions--end">
+      <button type="button" class="btn btn--quiet" id="back2">返回修改</button>
+      <button type="button" class="btn btn--primary" id="submitBooking">确认预约</button>
+    </div>
+  </section>
+
+  <!-- ============ DONE: what now exists ============ -->
+  <section class="panel" data-step="4" id="step4" aria-labelledby="hdone">
+    <div class="done-head">
+      <svg class="tick" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+      <div>
+        <h1 id="hdone">预约好了</h1>
+        <p class="hint" id="doneHint" style="margin-top:2px;">请按下面的时间到店，前台报预约号即可。</p>
+      </div>
+    </div>
+
+    <div class="slip">
+      <div class="slip__top"></div>
+      <div class="slip__body">
+        <p class="slip__id" id="slipId"></p>
+        <p class="slip__when" id="slipWhen"></p>
+        <p class="slip__who" id="slipWho"></p>
+        <dl class="facts">
+          <dt>就诊人</dt><dd id="slipPatient"></dd>
+          <dt>手机号</dt><dd id="slipPhone"></dd>
+          <dt>地点</dt><dd>望京店二层门诊 3 号诊室</dd>
+        </dl>
+      </div>
+    </div>
+
+    <p class="hint" style="margin-top:var(--s4);">需要改时间或取消，就在这一页操作，不用打电话。</p>
+
+    <div class="actions">
+      <button type="button" class="btn btn--quiet" id="askCancel">取消这个预约</button>
+      <button type="button" class="btn btn--link" id="newBooking">再约一个</button>
+    </div>
+  </section>
+
+  <footer class="terms">
+    安和诊所望京店。本页面仅用于演示表单与状态设计，不产生真实预约。
+  </footer>
+</div>
+
+<!-- destructive confirmation: names the object and the consequence -->
+<div class="scrim" id="scrim" hidden>
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dlgTitle" aria-describedby="dlgBody" id="dialog">
+    <h2 id="dlgTitle"></h2>
+    <p id="dlgBody"></p>
+    <div class="actions">
+      <button type="button" class="btn btn--quiet" id="dlgSafe">保留预约</button>
+      <button type="button" class="btn btn--danger" id="dlgConfirm" data-busy="0">
+        <span class="spinner" id="dlgSpin" hidden aria-hidden="true"></span>
+        <span class="btn__label">取消预约</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---------------- data ---------------- */
+  var DEPTS = [
+    { id: 'neike',  name: '内科' },
+    { id: 'kouqiang', name: '口腔' },
+    { id: 'erke',   name: '儿科' },
+    { id: 'zhongyi', name: '中医' }
+  ];
+
+  /* one slot is deliberately down as a race case: the first submit for 11:00 fails,
+     so the "slot taken between selection and submit" rule is demonstrable. */
+  var SLOTS = {
+    neike: [
+      { id: 'n1100', time: '11:00', doc: '张医生' },
+      { id: 'n1130', time: '11:30', doc: '李医生' },
+      { id: 'n1400', time: '14:00', doc: '张医生' },
+      { id: 'n1430', time: '14:30', doc: '王医生' }
+    ],
+    kouqiang: [
+      { id: 'k0930', time: '09:30', doc: '陈医生' },
+      { id: 'k1030', time: '10:30', doc: '陈医生' }
+    ],
+    erke: [
+      { id: 'e1330', time: '13:30', doc: '周医生' },
+      { id: 'e1500', time: '15:00', doc: '周医生' }
+    ],
+    zhongyi: []                    /* empty state: no slots today */
+  };
+
+  var NEXT_DAY = '10 月 21 日（周三）';
+
+  var state = {
+    step: 1,
+    dept: 'neike',
+    slotId: null,
+    patient: { name: '', phone: '', note: '' },
+    taken: Object.create(null),      /* slotId -> true, once a slot is lost */
+    raceConsumed: false,
+    booking: null,
+    submitting: false,
+    cancelling: false
+  };
+
+  var $ = function (id) { return document.getElementById(id); };
+  var el = {
+    steps:       [$('stepLabel1'), $('stepLabel2'), $('stepLabel3')],
+    fills:       [$('stepFill'), $('stepFill2')],
+    status:      $('stepStatus'),
+    panels:      [null, $('step1'), $('step2'), $('step3'), $('step4')],
+    depts:       $('depts'),
+    slotsHost:   $('slotsHost'),
+    conflictBox: $('conflictBox'),
+    toStep2:     $('toStep2'),
+    form:        $('form'),
+    name:        $('name'),
+    phone:       $('phone'),
+    note:        $('note'),
+    nameErr:     $('nameErr'),
+    phoneErr:    $('phoneErr'),
+    back1:       $('back1'),
+    back2:       $('back2'),
+    toStep3:     $('toStep3'),
+    review:      $('review'),
+    submitBooking: $('submitBooking'),
+    scrim:       $('scrim'),
+    dialog:      $('dialog'),
+    dlgTitle:    $('dlgTitle'),
+    dlgBody:     $('dlgBody'),
+    dlgSafe:     $('dlgSafe'),
+    dlgConfirm:  $('dlgConfirm'),
+    dlgSpin:     $('dlgSpin'),
+    askCancel:   $('askCancel'),
+    newBooking:  $('newBooking')
+  };
+
+  /* ---------------- validation ---------------- */
+  /* touched = the field has been left at least once. An untouched field never
+     shows an error; after the first leave, it corrects on every keystroke. */
+  var touched = Object.create(null);
+
+  var RULES = {
+    name: function (v) {
+      var s = (v || '').trim();
+      if (!s) return '请填写就诊人姓名，取号时需要和身份证一致。';
+      if (s.length < 2) return '姓名至少 2 个字，请填写完整姓名。';
+      if (s.length > 20) return '姓名超过 20 个字，请只填就诊人本人的姓名。';
+      return '';
+    },
+    phone: function (v) {
+      var s = (v || '').replace(/\s+/g, '');
+      if (!s) return '请填写 11 位手机号，用于到店核对。';
+      if (!/^\d+$/.test(s)) return '手机号只能填数字，请删掉字母或符号。';
+      if (s.length !== 11) return '手机号需要 11 位，现在填了 ' + s.length + ' 位。';
+      if (!/^1[3-9]/.test(s)) return '手机号以 1 开头，第二位应为 3–9，请检查。';
+      return '';
+    }
+  };
+
+  function setError(fieldName) {
+    var input  = fieldName === 'name' ? el.name : el.phone;
+    var errEl  = fieldName === 'name' ? el.nameErr : el.phoneErr;
+    var msg    = RULES[fieldName](input.value);
+    var show   = touched[fieldName] && msg;
+
+    if (show) {
+      errEl.textContent = '';
+      var mark = document.createElement('span');
+      mark.className = 'err__mark';
+      mark.setAttribute('aria-hidden', 'true');
+      mark.textContent = '!';
+      var text = document.createElement('span');
+      text.textContent = msg;
+      errEl.appendChild(mark);
+      errEl.appendChild(text);
+      errEl.setAttribute('data-on', '1');
+      input.setAttribute('aria-invalid', 'true');
+    } else {
+      errEl.textContent = '';
+      errEl.setAttribute('data-on', '0');
+      input.removeAttribute('aria-invalid');
+    }
+    return msg;
+  }
+
+  ['name', 'phone'].forEach(function (f) {
+    var input = el[f];
+    input.addEventListener('blur', function () {
+      touched[f] = true;
+      setError(f);
+    });
+    input.addEventListener('input', function () {
+      setError(f);            /* no-op visually until the field has been left once */
+      state.patient[f] = input.value;
+    });
+  });
+
+  /* ---------------- step machinery ---------------- */
+  var STEP_NAMES = { 1: '选择时间', 2: '填写信息', 3: '确认', 4: '预约完成' };
+
+  function goStep(n) {
+    state.step = n;
+    el.panels.forEach(function (p, i) {
+      if (!p) return;
+      p.setAttribute('data-on', i === n ? '1' : '0');
+    });
+
+    /* progress: named steps, thin rule. step 4 has no step chrome. */
+    var active = Math.min(n, 3);
+    el.steps.forEach(function (label, i) {
+      label.setAttribute('data-on', i + 1 === active ? '1' : '0');
+    });
+    el.fills[0].style.width = active >= 2 ? '100%' : '0';
+    el.fills[1].style.width = active >= 3 ? '100%' : '0';
+
+    el.status.textContent = '第 ' + Math.min(n, 3) + ' 步，共 3 步：' + STEP_NAMES[n];
+
+    /* move focus to the new panel's heading so keyboard and screen-reader users land here */
+    var panel = el.panels[n];
+    if (panel) {
+      var h = panel.querySelector('h1, h2');
+      if (h) {
+        h.setAttribute('tabindex', '-1');
+        h.focus({ preventScroll: false });
+      }
+    }
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  }
+
+  /* ---------------- step 1: departments + slots ---------------- */
+  function renderDepts() {
+    el.depts.textContent = '';
+    DEPTS.forEach(function (d) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'dept';
+      b.textContent = d.name;
+      b.setAttribute('aria-pressed', String(d.id === state.dept));
+      b.addEventListener('click', function () {
+        if (state.dept === d.id) return;
+        state.dept = d.id;
+        state.slotId = null;
+        el.conflictBox.hidden = true;
+        renderDepts();
+        renderSlots();
+        syncToStep2();
+      });
+      el.depts.appendChild(b);
+    });
+  }
+
+  function slotsFor(deptId) { return SLOTS[deptId] || []; }
+
+  function renderSlots() {
+    var list = slotsFor(state.dept);
+    el.slotsHost.textContent = '';
+
+    if (!list.length) {
+      /* EMPTY STATE: cause, then the way forward — never just "今日无号". */
+      var box = document.createElement('div');
+      box.className = 'empty';
+
+      var t = document.createElement('p');
+      t.className = 'empty__title';
+      t.textContent = '今天中医科已经约满';
+
+      var b = document.createElement('p');
+      b.className = 'empty__text';
+      b.textContent = '中医科的号源较少，今天的名额在上午就已经放完了。明天上午还有 4 个名额。';
+
+      var n = document.createElement('p');
+      n.className = 'empty__next';
+      n.appendChild(document.createTextNode('最近的号：'));
+      var strong = document.createElement('strong');
+      strong.textContent = NEXT_DAY + ' 09:00';
+      n.appendChild(strong);
+      n.appendChild(document.createTextNode('　也可以打电话 010-6470 1234 登记候补。'));
+
+      box.appendChild(t); box.appendChild(b); box.appendChild(n);
+      el.slotsHost.appendChild(box);
+      syncToStep2();
+      return;
+    }
+
+    var grid = document.createElement('div');
+    grid.className = 'slots';
+    list.forEach(function (s) {
+      var taken = !!state.taken[s.id];
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'slot';
+      b.disabled = taken;
+      if (taken) b.setAttribute('data-taken', '1');
+      b.setAttribute('aria-pressed', String(s.id === state.slotId));
+      b.setAttribute('aria-label',
+        s.time + ' ' + s.doc + (taken ? '，已被约走' : ''));
+
+      var time = document.createElement('span');
+      time.className = 'slot__time';
+      time.textContent = s.time;
+      var doc = document.createElement('span');
+      doc.className = 'slot__doc';
+      doc.textContent = taken ? '已被约走' : s.doc;
+
+      b.appendChild(time); b.appendChild(doc);
+      b.addEventListener('click', function () {
+        if (taken) return;
+        state.slotId = s.id;
+        renderSlots();
+        syncToStep2();
+      });
+      grid.appendChild(b);
+    });
+    el.slotsHost.appendChild(grid);
+    syncToStep2();
+  }
+
+  function syncToStep2() {
+    el.toStep2.disabled = !state.slotId;
+    el.toStep2.textContent = state.slotId ? '下一步：填写信息' : '请先选择一个时间';
+  }
+
+  function slotById(id) {
+    var out = null;
+    Object.keys(SLOTS).forEach(function (k) {
+      SLOTS[k].forEach(function (s) { if (s.id === id) out = s; });
+    });
+    return out;
+  }
+  function deptName(id) {
+    var out = '';
+    DEPTS.forEach(function (d) { if (d.id === id) out = d.name; });
+    return out;
+  }
+
+  /* ---------------- step 3: review ---------------- */
+  function renderReview() {
+    var s = slotById(state.slotId);
+    el.review.textContent = '';
+    var rows = [
+      ['科室', deptName(state.dept)],
+      ['时间', s ? s.time : '—'],
+      ['医生', s ? s.doc : '—'],
+      ['就诊人', state.patient.name.trim()],
+      ['手机号', state.patient.phone.trim()],
+      ['备注', state.patient.note.trim() || '（无）']
+    ];
+    rows.forEach(function (r) {
+      var dt = document.createElement('dt'); dt.textContent = r[0];
+      var dd = document.createElement('dd'); dd.textContent = r[1];
+      el.review.appendChild(dt); el.review.appendChild(dd);
+    });
+  }
+
+  /* ---------------- submit: busy, race, success ---------------- */
+  function setBusy(btn, busy, labelBusy, labelIdle) {
+    btn.setAttribute('data-busy', busy ? '1' : '0');
+    btn.disabled = !!busy;
+    var label = btn.querySelector('.btn__label');
+    if (label) label.textContent = busy ? labelBusy : labelIdle;
+    else btn.textContent = busy ? labelBusy : labelIdle;
+    var spin = btn.querySelector('.spinner');
+    if (spin) spin.hidden = !busy;
+  }
+
+  function submitBooking() {
+    if (state.submitting) return;
+
+    /* re-validate everything on submit and focus the first invalid field */
+    touched.name = true; touched.phone = true;
+    var errName = setError('name');
+    var errPhone = setError('phone');
+    if (errName || errPhone) {
+      goStep(2);
+      var first = errName ? el.name : el.phone;
+      first.focus();
+      return;
+    }
+
+    state.submitting = true;
+    setBusy(el.submitBooking, true, '正在锁定号源…', '确认预约');
+
+    window.setTimeout(function () {
+      state.submitting = false;
+      setBusy(el.submitBooking, false, '正在锁定号源…', '确认预约');
+
+      /* RACE: the 11:00 slot is lost on the first attempt. Keep everything the
+         patient typed, name the collision, mark the slot, offer the nearest
+         alternative in the same view. */
+      if (state.slotId === 'n1100' && !state.raceConsumed) {
+        state.raceConsumed = true;
+        state.taken['n1100'] = true;
+        state.slotId = null;
+
+        renderSlots();
+        el.conflictBox.hidden = false;
+        el.conflictBox.textContent = '';
+
+        var box = document.createElement('div');
+        box.className = 'notice notice--conflict';
+        var body = document.createElement('div');
+        body.className = 'notice__body';
+        var title = document.createElement('p');
+        title.className = 'notice__title';
+        title.textContent = '11:00 张医生的号刚被约走了';
+        var text = document.createElement('p');
+        text.className = 'notice__text';
+        text.textContent = '你的姓名、手机号和备注都还留着。下面是同一科室最近的可选时间，选一个直接继续。';
+        body.appendChild(title); body.appendChild(text);
+        box.appendChild(body);
+        el.conflictBox.appendChild(box);
+
+        /* preselect the nearest alternative */
+        state.slotId = 'n1130';
+        renderSlots();
+        el.conflictBox.hidden = false;
+        el.conflictBox.appendChild(box);
+
+        goStep(1);
+        var firstAlt = el.slotsHost.querySelector('[aria-pressed="true"]');
+        if (firstAlt) firstAlt.focus();
+        return;
+      }
+
+      state.booking = {
+        id: 'AH-' + new Date().getFullYear() +
+            String(new Date().getMonth() + 1).padStart(2, '0') +
+            String(new Date().getDate()).padStart(2, '0') +
+            '-' + String(1000 + Math.floor(Math.random() * 9000)),
+        slot: slotById(state.slotId),
+        dept: deptName(state.dept),
+        patient: {
+          name: state.patient.name.trim(),
+          phone: state.patient.phone.trim(),
+          note: state.patient.note.trim()
+        }
+      };
+      renderDone();
+      goStep(4);
+    }, 900);
+  }
+
+  function renderDone() {
+    var b = state.booking;
+    if (!b) return;
+    $('slipId').textContent = '预约号 ' + b.id;
+    $('slipWhen').textContent = '今天 ' + b.slot.time;
+    $('slipWho').textContent = b.slot.doc + '，' + b.dept;
+    $('slipPatient').textContent = b.patient.name;
+    $('slipPhone').textContent = b.patient.phone.replace(/^(\d{3})\d{4}(\d{4})$/, '$1****$2');
+  }
+
+  /* ---------------- cancel: object + consequence, safe action focused ---------------- */
+  var lastFocus = null;
+
+  function openCancel() {
+    var b = state.booking;
+    if (!b) return;
+    lastFocus = document.activeElement;
+
+    el.dlgTitle.textContent = '取消 ' + b.slot.time + ' ' + b.slot.doc + ' 的' + b.dept + '预约？';
+    el.dlgBody.textContent =
+      '预约号 ' + b.id + '，就诊人 ' + b.patient.name + '。' +
+      '现在离就诊时间不足 2 小时，取消后今天剩余的号源可能已被约满，需要重新排队。';
+
+    el.scrim.hidden = false;
+    el.dlgSafe.focus();          /* Enter on the focused safe button keeps the appointment */
+  }
+
+  function closeCancel() {
+    el.scrim.hidden = true;
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+
+  el.askCancel.addEventListener('click', openCancel);
+  el.dlgSafe.addEventListener('click', closeCancel);
+
+  el.dlgConfirm.addEventListener('click', function () {
+    if (state.cancelling) return;
+    state.cancelling = true;
+    setBusy(el.dlgConfirm, true, '正在取消…', '取消预约');
+
+    window.setTimeout(function () {
+      state.cancelling = false;
+      setBusy(el.dlgConfirm, false, '正在取消…', '取消预约');
+      closeCancel();
+
+      /* the appointment is gone; the slots that were consumed come back */
+      var slot = state.booking ? state.booking.slot : null;
+      if (slot) delete state.taken[slot.id];
+      state.booking = null;
+      state.slotId = null;
+      state.patient = { name: '', phone: '', note: '' };
+      el.name.value = ''; el.phone.value = ''; el.note.value = '';
+      touched = Object.create(null);
+      setError('name'); setError('phone');
+
+      renderSlots();
+      goStep(1);
+      el.status.textContent = '预约已取消，可以重新选时间。';
+      var firstSlot = el.slotsHost.querySelector('.slot');
+      if (firstSlot) firstSlot.focus();
+    }, 700);
+  });
+
+  el.scrim.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') { e.preventDefault(); closeCancel(); }
+  });
+
+  /* ---------------- wiring ---------------- */
+  el.toStep2.addEventListener('click', function () {
+    if (!state.slotId) return;
+    /* arriving at the form, restore whatever was already typed */
+    el.name.value = state.patient.name;
+    el.phone.value = state.patient.phone;
+    el.note.value = state.patient.note;
+    goStep(2);
+    if (!touched.name) el.name.focus(); else el.name.focus();
+  });
+
+  el.back1.addEventListener('click', function () { goStep(1); });
+
+  el.back2.addEventListener('click', function () {
+    el.name.value = state.patient.name;
+    el.phone.value = state.patient.phone;
+    el.note.value = state.patient.note;
+    goStep(2);
+  });
+
+  el.form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    touched.name = true; touched.phone = true;
+    var a = setError('name');
+    var b = setError('phone');
+    if (a) { el.name.focus(); return; }
+    if (b) { el.phone.focus(); return; }
+    state.patient.name = el.name.value;
+    state.patient.phone = el.phone.value;
+    state.patient.note = el.note.value;
+    renderReview();
+    goStep(3);
+  });
+
+  el.submitBooking.addEventListener('click', submitBooking);
+
+  el.newBooking.addEventListener('click', function () {
+    state.booking = null;
+    state.slotId = null;
+    state.patient = { name: '', phone: '', note: '' };
+    el.name.value = ''; el.phone.value = ''; el.note.value = '';
+    touched = Object.create(null);
+    setError('name'); setError('phone');
+    renderSlots();
+    goStep(1);
+  });
+
+  /* ---------------- boot ---------------- */
+  renderDepts();
+  renderSlots();
+})();
+</script>
+</body>
+</html>

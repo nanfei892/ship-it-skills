@@ -9,7 +9,7 @@ Every page was rendered in a real browser and inspected as images before being a
 This directory exists to prove the skill's central claim: **naming specific refusals produces distinct,
 product-specific interfaces, and inspection catches defects that tests cannot.**
 
-## The four directions
+## The five directions
 
 | Build | Product | Direction | Palette | Type | Signature move |
 | --- | --- | --- | --- | --- | --- |
@@ -17,8 +17,9 @@ product-specific interfaces, and inspection catches defects that tests cannot.**
 | [b-operational](b-operational/index.html) | 饭点商家台 — merchant console | Dense, neutral, low-chroma tool surface. Data first. | `#FBFBFA`, `#1A1C1F`, signal `#D93A1A`, jade `#2F6B57` | Noto Sans SC + IBM Plex Mono | Order rail as the spine of the layout |
 | [c-content-led](c-content-led/index.html) | 食记 issue 24 — editorial | Warm-neutral paper, serif-led, long-form reading. | paper `#F4F2ED`, ink `#191614`, oxblood `#7A2420` | Newsreader + Noto Serif SC + IBM Plex Sans + IBM Plex Mono | 4-column asymmetric essay grid |
 | [d-shift-console](d-shift-console/index.html) | 排班台 — shift scheduler | An instrument, not a dashboard: one shared 08:00–24:00 axis is the spine, so "who is on at 15:00" is read by vertical alignment rather than by comparing two timestamps. | stainless cool-neutral, jade accent, amber and brick for state | system CJK stack + monospace numerals | Time axis shared by every bar, the coverage strip, and the detail's day map |
+| [e-booking-form](e-booking-form/index.html) | 安和诊所 — appointment booking | A clinic counter, not a health app: white paper, one calm teal, every state spelled out in words. | ink `#16202B`, wash `#F4F7F8`, teal `#0E6E6E`, danger `#A3231A` | one CJK system stack + mono for times and the booking id | The confirmed appointment is a "counter slip": exactly the five facts you would repeat at the desk |
 
-Note that all four use **different paper tones and different accents**, and the two warm-neutral pages
+Note that all five use **different paper tones and different accents**, and the two warm-neutral pages
 (a, c) diverge on radius, geometry, contrast, and motion mode. Four takes on warm cream would have been
 one direction, not four — the skill's Section 3 exists to prevent exactly that.
 
@@ -158,6 +159,43 @@ surface owns the phone viewport and the Product Interface Reference's instructio
 master-detail case as a composition problem. The Hand Off checklist now requires stating the confirmed
 layout width for any narrow check. The Section 2 ban list also gained pill-shaped buttons for ordinary
 actions, after the 夜读 landing page used them freely.
+
+## Forms and states — the fifth page
+
+The `Forms and destructive actions` section was added on the strength of a coverage probe, which means for
+one round it was **rules without an artifact**. This page exists to close that: every rule in that section
+is implemented here, and each state was driven programmatically and then looked at.
+
+| State | Evidence | What it proves |
+| --- | --- | --- |
+| Step 1 — choose | [PNG](shots/e-booking-form-mobile-390x844.png) | 2×2 slot grid, disabled next-step that explains why |
+| Validation | [PNG](shots/e-state-errors-390x844.png) | Errors at the field, specific, with the actual count |
+| Lost race | [PNG](shots/e-state-race-390x844.png) | Typed values kept, collision named, alternative preselected |
+| Success | [PNG](shots/e-state-success-390x844.png) | Booking identity, masked phone, cancel path in the same view |
+| Destructive confirm | [PNG](shots/e-state-cancel-390x844.png) | Object + consequence named, safe action focused |
+| Empty state | [PNG](shots/e-state-empty-390x844.png) | Cause, next available day, phone fallback |
+
+Measured at a true `390×844`: horizontal overflow `0px`, smallest rendered text `13px`, smallest
+interactive dimension `44px`, no active `transition: all`.
+
+**Driving the states found a bug no screenshot could.** The step machinery set
+`data-on = String(i === n)`, which produces `"true"`/`"false"`, while the CSS matched `[data-on="1"]`.
+Clicking "next" therefore hid the current panel and never showed the next one — the page went blank. The
+first screenshot only ever shows step 1, so the defect was invisible until the flow was driven.
+A second one came from looking: programmatic focus on a step heading painted a default focus ring around a
+non-interactive `<h1>`.
+
+**Two measurement lessons, both worth keeping.**
+
+1. **`--dump-dom` produces no rendering frames, so CSS transitions never advance.** `getComputedStyle`
+   then reports the value the property started from, and an inline `style.borderColor` set afterwards
+   appears to be ignored. Measuring a transitioned property in that mode silently returns stale values —
+   which nearly sent me hunting a non-existent cascade bug in the invalid-field border. Neutralise
+   transitions (`*{transition:none!important}`) before measuring computed styles, or measure from a real
+   screenshot.
+2. **For colour, sample pixels rather than trusting your eye.** The confirmation scrim looked far too light
+   in the image; sampling the corner gave `#F4F7F8` → `#979CA2`, exactly the 42% overlay that was authored.
+   The scrim was correct and my reading of the image was wrong.
 
 ## Coverage probe — a cheaper, better validation instrument
 
