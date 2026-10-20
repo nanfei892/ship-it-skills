@@ -48,6 +48,15 @@ Build, redesign, or review frontend interfaces so they **have a clear product id
 - Also for polish work: "this button feels wrong" / "check the hierarchy and spacing"
 - See it in action: [skill-showcase](skill-showcase/README.md) — four deliberately divergent pages, desktop and mobile renders, and the defects that only surfaced by looking at real images and measuring real viewports
 
+<table>
+<tr>
+<td width="50%"><img src="skill-showcase/shots/d-shift-console-desktop-1440x900.png" alt="Shift console rendered at a real 1440x900 desktop viewport"><br><sub>Operational console · 1440×900 · one shared time axis</sub></td>
+<td width="50%"><img src="skill-showcase/shots/c-content-led-mobile-390x844.png" alt="Editorial page rendered at a true 390px viewport"><br><sub>Editorial page · a real 390×844 viewport</sub></td>
+</tr>
+</table>
+
+Both images were **rendered in a browser at the stated viewport and then actually looked at** — they are not mockups.
+
 ### ship-it-backend — Backend
 
 Delivers one backend capability **end to end**: define the contract first (actor, inputs, success, invariants, failures, state change), then walk the full vertical slice — schema and migrations, boundary validation, authentication and authorization, business rules, persistence, stable errors, integrity controls (transactions / idempotency / concurrency), focused tests. Preserve the repository's stack and conventions; no speculative abstractions. The definition of done is explicit: entry point wired, invariants enforced server-side, valid migration that preserves data, stable non-leaking failure responses, passing tests, and an **exact integration contract** handed to the frontend.

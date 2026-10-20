@@ -90,6 +90,21 @@ foreach ($f in $mdFiles) {
 }
 if ($badLinks -eq 0) { Ok "all relative links resolve across $($mdFiles.Count) markdown files" }
 
+# images can also be referenced with raw HTML, which the markdown link pattern misses
+$badImg = 0
+foreach ($f in $mdFiles) {
+    $md = Get-Content -LiteralPath $f.FullName -Raw
+    $base = $f.Directory.FullName
+    foreach ($m in [regex]::Matches($md, '(?i)<img\s[^>]*src="(?!https?:)([^"]+)"')) {
+        $rel = $m.Groups[1].Value
+        if (-not (Test-Path -LiteralPath (Join-Path $base $rel))) {
+            Bad "$($f.Name): broken image src -> $rel"
+            $badImg++
+        }
+    }
+}
+if ($badImg -eq 0) { Ok 'all inline HTML image sources resolve' }
+
 # ---------------------------------------------------------------- leftovers
 Head 'scratch artifacts'
 $patterns = @('_probe*', '_m-*', '_clamp*', '_vp*', '_frame-*', 'own-*.png', '_shots', '_verify', 'lab3', 'showcase-lab-b', 'skill-showcase-lab')
