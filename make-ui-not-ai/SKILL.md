@@ -304,6 +304,8 @@ After implementation, stop reasoning like the author. Review rendered screenshot
 
 When independent agents or reviewers are available and permitted, give them only the brief and the rendered artifacts — not the intended answer or any self-justification. Otherwise perform two separated passes: a cold visual read, then a task walkthrough. Do not begin by defending choices; record what attracts attention and what looks accidental before explaining anything.
 
+**Take the cold read from the images before opening the source.** Look at the render, write down what you notice, and only then read the code and the direction notes. A direction block at the top of a file is not a substitute for the render, and reading it first contaminates the read — you start checking the stated intent instead of seeing what is there.
+
 **Cold read at actual rendered scale:**
 
 - What do I notice first, second, and third — and is that order correct for the task?
@@ -325,11 +327,22 @@ When independent agents or reviewers are available and permitted, give them only
 - **Templated:** recognizable AI defaults dominate composition, palette, type, or content.
 - **Visually unresolved:** competing decisions, weak hierarchy, or major readability problems.
 
+Keep the verdict about direction and visual execution. Factual consistency and data integrity are the gate's business, not the verdict's: when the direction is right and the execution is careless, keep the verdict and let the gate block. A strong direction never excuses a craft miss, and a craft miss never downgrades a sound direction.
+
 A critical composition failure cannot be canceled by passing contrast checks. Prefer structural fixes over cosmetic tweaks: "make the detail title the only 24px element, reduce nav emphasis, and remove accent fills from metadata" is stronger than "increase contrast." Render again after meaningful revisions and apply the verdict to the final render.
 
-**Report the review as a table, and state what you did not inspect.** A prose critique hides both the evidence and the gaps. Start with a coverage table: each review dimension, what you actually inspected for it (which screenshot, viewport, and state), and the result — a finding count, `clear`, or `not reviewed` plus the reason. Never let an uninspected surface read as approved, and never imply that a screenshot you did not open was reviewed. Then list findings, most visible first, capped at five. For each: severity (`high` makes the interface inaccessible, misleading, unreadable, or repeatedly disruptive; `medium` is a noticeable usability or consistency problem; `low` is isolated polish), location, what it looks like now, the concrete replacement, and the principle it violates. Consolidate one systemic issue into a single row naming every affected location, and do not pad the list to reach the cap. Finish with one to three candidates you considered and rejected, and why — invent nothing to fill the space.
+**Report the review in a fixed shape, and state what you did not inspect.** A prose critique hides both the evidence and the gaps. Use these six headings, in this order:
 
-**Gate the ship separately from judging the design.** `block` while any high finding stands, `needs changes` when only medium or low findings remain, `approve` only when nothing actionable is left. List every check you did not run beside the gate; an unverified check is not a pass.
+1. **Scope** — the artifact, the viewports, the states, and how the layout width was confirmed.
+2. **Cold read** — the answers to the questions above, written before you opened the source.
+3. **Coverage** — one row per review dimension: what you actually inspected (which screenshot, viewport, state), then a result. A result is a finding count, `clear` (you looked and found nothing actionable), `not reviewed` plus the reason, or `source only` when the item comes from reading code in a state you could not render. Qualify per viewport when they differ — `clear at 390, not reviewed at 1440`. Never let an uninspected surface read as approved, and never imply that a screenshot you did not open was reviewed.
+4. **Findings** — a list, not more table columns, most visible first, capped at five reported items. If a sixth is actionable, say so in one line and leave the gate blocked: the cap limits the report, not the truth. For each: severity, location (`path:line`, or the screen and component when there is no source), what it looks like now, the concrete replacement, and the principle it violates. Consolidate one systemic issue into a single item naming every affected location.
+5. **Considered and rejected** — one to three candidates and why, or state plainly that there were none. Invent nothing to fill the space.
+6. **Verdict and gate** — the design verdict, the ship gate, and every check you did not run.
+
+Severity: `high` makes the interface inaccessible, misleading, unreadable, or repeatedly disruptive; `medium` is a noticeable usability or consistency problem; `low` is isolated polish.
+
+**Gate the ship separately from judging the design.** `block` while any high finding stands, `needs changes` when only medium or low findings remain, `approve` only when nothing actionable is left. An unverified check is not a pass. Simulated data is not a credibility failure when it is declared as such (see *Hand Off*) — an undeclared fake is, and so is data that contradicts itself on the page.
 
 ## 8. Verify Function and Visual Quality Separately
 

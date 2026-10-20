@@ -402,7 +402,7 @@ a{color:var(--jade);text-underline-offset:3px}
   font-family:var(--font-display);font-weight:900;
   font-size:clamp(24px,3vw,34px);letter-spacing:0;
 }
-.section__sub{font-size:var(--fs-14);color:var(--ink-muted);max-width:46ch}
+.section__sub{font-size:var(--fs-14);color:var(--ink-muted);max-width:62ch}
 .section__body{margin-top:var(--s5)}
 
 .cols{display:grid;gap:var(--s7)}
@@ -638,7 +638,7 @@ a{color:var(--jade);text-underline-offset:3px}
       <div class="hero__text">
         <h1 id="heroTitle" class="hero__lede enter">六点四十了，还没想好吃什么？</h1>
         <p class="hero__sub enter enter--2">
-          双井这一片，现在还有 7 家开着灶，两家带排队。
+          双井这一片，现在还有 7 家开着灶，五家带排队。
           三分钟内定不下来，我们直接替你出一张票，定店、定菜、给你号。
         </p>
         <div class="hero__facts enter enter--3">
@@ -859,7 +859,7 @@ a{color:var(--jade);text-underline-offset:3px}
           <ul class="shops" id="shopList"></ul>
 
           <div class="empty" id="empty" hidden>
-            <p>没有匹配的店。试试「米线」，或者把「只看营业中」关掉，打烊那两家今晚也不算差。</p>
+            <p>没有匹配的店。试试「米线」，或者把「只看营业中」关掉，休息那两家今晚也不算差。</p>
             <button class="btn btn--ghost" id="resetFilters" type="button">清掉筛选条件</button>
           </div>
         </div>
@@ -921,6 +921,9 @@ a{color:var(--jade);text-underline-offset:3px}
         票号是店里的真实队列号，过号 10 分钟后自动放给下一位。
         保留三分钟是给路上留的时间，超了要重新取号。
       </p>
+      <p class="foot__note" style="margin-top:var(--s3);color:var(--ink-muted);">
+        演示页面：店铺、队列与时间都是固定示例数据，不产生真实取号；页面里的“现在”固定为 <span class="num">18:42</span>。
+      </p>
     </div>
   </div>
 </footer>
@@ -936,12 +939,12 @@ a{color:var(--jade);text-underline-offset:3px}
   /* ---------- data: real names, real prices ---------- */
   var SHOPS = [
     {n:"沙县小吃",      br:"双井南口",        cat:"快餐",   pc:20, dist:"300 米", wait:0,  walk:4,  open:true,  dish:"拌面加扁肉汤", price:21, side:"蒸饺", sidep:8},
-    {n:"江南小炒",      br:"双井富力城B座底商店", cat:"家常小炒", pc:52, dist:"380 米", wait:0,  walk:5,  open:false, dish:"小炒黄牛肉", price:42, side:"手撕包菜", sidep:22, shut:"20:30 打烊"},
-    {n:"陈记砂锅",      br:"双井店",          cat:"砂锅",   pc:38, dist:"420 米", wait:0,  walk:6,  open:true,  dish:"番茄牛腩砂锅", price:46, side:"米饭", sidep:3},
+    {n:"江南小炒",      br:"双井富力城B座底商店", cat:"家常小炒", pc:52, dist:"380 米", wait:0,  walk:5,  open:false, dish:"小炒黄牛肉", price:42, side:"手撕包菜", sidep:22, shut:"今天休息"},
+    {n:"陈记砂锅",      br:"双井店",          cat:"砂锅",   pc:38, dist:"420 米", wait:14, walk:6,  open:true,  dish:"番茄牛腩砂锅", price:46, side:"米饭", sidep:3},
     {n:"老北京炸酱面",  br:"垂杨柳店",        cat:"京味面食", pc:28, dist:"500 米", wait:0,  walk:7,  open:true,  dish:"小碗干炸酱面", price:26, side:"芥末墩", sidep:12},
     {n:"柳州螺蛳粉",    br:"广渠路店",        cat:"粉面",   pc:24, dist:"650 米", wait:6,  walk:9,  open:true,  dish:"原味螺蛳粉 中辣", price:22, side:"卤蛋加腐竹", sidep:6},
     {n:"蜀香源冒菜",    br:"双井桥东",        cat:"川味",   pc:32, dist:"830 米", wait:12, walk:11, open:true,  dish:"牛肉冒菜 微辣", price:36, side:"米饭", sidep:3},
-    {n:"重庆小面",      br:"广渠门外大街店",  cat:"面食",   pc:22, dist:"900 米", wait:0,  walk:12, open:false, dish:"豌杂面 干馏", price:24, side:"冰粉", sidep:10, shut:"21:00 打烊"},
+    {n:"重庆小面",      br:"广渠门外大街店",  cat:"面食",   pc:22, dist:"900 米", wait:0,  walk:12, open:false, dish:"豌杂面 干馏", price:24, side:"冰粉", sidep:10, shut:"今天休息"},
     {n:"潮汕牛肉火锅",  br:"富力城店",        cat:"火锅",   pc:96, dist:"1.1 公里", wait:25, walk:14, open:true, dish:"吊龙匙柄双拼", price:88, side:"粿条", sidep:8},
     {n:"云南小锅米线",  br:"劲松店",          cat:"米线",   pc:30, dist:"1.4 公里", wait:8,  walk:18, open:true, dish:"酸汤小锅米线", price:28, side:"炸洋芋", sidep:10}
   ];
@@ -957,8 +960,12 @@ a{color:var(--jade);text-underline-offset:3px}
     return String(Math.floor(sec/60)).padStart(2,"0") + ":" + String(sec%60).padStart(2,"0");
   }
 
-  var boot = new Date();
-  el("nowTime").textContent = hhmm(boot);
+  /* The page's data is pinned to one moment, so the header clock must show that same
+     moment. Reading the viewer's clock instead made the page contradict itself: two
+     shops showed "打烊" at a time before their own closing hour, and the queue below
+     was labelled 18:42 while the header said something else. */
+  var NOW_TEXT = "18:42";
+  el("nowTime").textContent = NOW_TEXT;
 
   /* ---------- decision state machine ---------- */
   var DECIDE_SECONDS = 180;
@@ -1204,7 +1211,7 @@ a{color:var(--jade);text-underline-offset:3px}
         btn.className = "btn btn--ghost";
         btn.textContent = "已打烊";
         btn.disabled = true;
-        btn.setAttribute("aria-label", s.n + s.br + " 已打烊，" + s.shut + "，不能出票");
+        btn.setAttribute("aria-label", s.n + s.br + " 今天休息，" + s.shut + "，不能出票");
         btn.setAttribute("aria-describedby","shut-" + SHOPS.indexOf(s));
       }
 
