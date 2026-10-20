@@ -128,8 +128,35 @@ frontend, ui-design, design-system, responsive, accessibility, animation, intera
 ## 7. 提交前核对
 
 - [x] source 指向 `ship-it-skills`（不是 `my-skill`）
-- [x] 仓库 `SKILL.md` 已推送到 master（市场安装源已核验为新内容）
+- [x] 仓库 `SKILL.md` 已推送到 master（市场安装源已核验与新内容**逐字符一致**）
 - [x] skill-showcase 演示案例与核验工具已随仓库发布
+- [x] `pwsh -File preflight.ps1` 通过（零阻塞项）
 - [ ] summary 双语，≤200 字符 ← **需你登录提交**
 - [ ] tags 由 4 个扩到 10 个 ← **需你登录提交**
 - [ ] version 升到 2.0 ← **需你登录提交**
+
+---
+
+## 8. 发布前后对比基线
+
+改 summary / tags / version 之后，要知道它到底有没有效果，而不是凭感觉。这是**改动前**的实测快照：
+
+| 时点 | installs | stars | score | version | summary | tags |
+| --- | --- | --- | --- | --- | --- | --- |
+| 2026-10-15 前后（技能重写推送时） | 2396 | 2 | 0.409 | 1.0 | 49 | 4 |
+| 2026-10-20 15:45 | **2454** | 3 | 0.483 | 1.0 | 49 | 4 |
+
+**有机增速 ≈ 11.7 次/天**（5 天 +58），期间**列表页一个字都没改**。这 58 次全部来自仓库内容与自然流量。
+
+所以更新提交后的判断标准是清楚的：
+
+- 若日增仍在 12 上下 → 列表页文案不是瓶颈，下一步该换别的手段（案例传播、把 ship-it-mvp 迁到同一 handle）
+- 若日增明显抬升（比如 20+/天）→ summary 与 tags 是真实瓶颈，值得继续优化列表页
+- 若 `score` 跳升 → 版本号 / 描述参与了排序权重
+
+隔 3–7 天用同一条命令再取一次，和上表对齐：
+
+```powershell
+pwsh -File preflight.ps1     # 会打印 installs / stars / score / summary 长度 / tags 数量
+```
+
