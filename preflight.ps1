@@ -127,6 +127,11 @@ if (-not $SkipRemote) {
         (([System.Security.Cryptography.SHA256]::Create().ComputeHash($b)) | ForEach-Object { $_.ToString('x2') }) -join ''
     }
     foreach ($s in $skills) {
+        if ($s.Name -eq 'make-ui-not-ai') {
+            # covered by the marketplace section below, which also distinguishes CDN lag
+            # from an unpushed commit; checking it here too would report the same fact twice
+            continue
+        }
         $url = "https://raw.githubusercontent.com/nanfei892/ship-it-skills/master/$($s.Name)/SKILL.md"
         try {
             $live = Normalize (Invoke-WebRequest -Uri $url -Headers @{ 'User-Agent' = $ua0 } -UseBasicParsing).Content
@@ -179,15 +184,23 @@ if (-not $SkipRemote) {
         if ($pkg.tags.Count -lt 8)       { Warn "only $($pkg.tags.Count) tags - the prepared set is 10" }
 
         # does what users install match the file in this repo?
+        # raw.githubusercontent sits behind a CDN, so a freshly pushed commit can still
+        # serve the previous blob for a few minutes. Only treat that as a blocker when
+        # the push itself has not landed; otherwise it is cache lag, not a defect.
         $live = (Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/nanfei892/ship-it-skills/master/make-ui-not-ai/SKILL.md' `
-                   -Headers @{ 'User-Agent' = $ua } -UseBasicParsing).Content
+                   -Headers @{ 'User-Agent' = $ua0 } -UseBasicParsing).Content
         $mine = Get-Content -LiteralPath $mi -Raw
-        if ($live -eq $mine) {
+        $norm = { param($s) ($s -replace "`r`n", "`n").TrimEnd() }
+        if ((& $norm $live) -eq (& $norm $mine)) {
             Ok "install source serves exactly this repo's SKILL.md ($($live.Length) chars)"
-        } elseif ($pkg.source -match 'make-ui-not-ai/SKILL\.md$') {
-            Bad "install source differs from the local file (live $($live.Length) chars vs local $($mine.Length)) - push, or the registry is serving a snapshot"
         } else {
-            Warn "install source points elsewhere: $($pkg.source)"
+            $headLocal = git rev-parse HEAD
+            $headRemote = git ls-remote origin master 2>$null | ForEach-Object { $_.Split("`t")[0] }
+            if ($headLocal -eq $headRemote) {
+                Warn "install source is serving an older blob ($($live.Length) vs $(& $norm $mine).Length chars) but HEAD is pushed ($($headLocal.Substring(0,7))) - raw.githubusercontent CDN lag; re-run in a few minutes"
+            } else {
+                Bad "install source differs from the local file and HEAD is not pushed (local $($headLocal.Substring(0,7)) vs remote $(if($headRemote){$headRemote.Substring(0,7)}else{'unknown'}))"
+            }
         }
     } catch {
         Warn "could not reach the marketplace: $($_.Exception.Message)"
