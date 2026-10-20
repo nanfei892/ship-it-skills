@@ -17,7 +17,8 @@ Two facts drive this skill:
 | Task | Apply |
 | --- | --- |
 | Greenfield build or substantial redesign | Full workflow (1–8) and all reference sections |
-| Operational product (dashboard, admin, editor, tool) | Full workflow; weight the Ban List and Product Interface Reference |
+| Operational product (dashboard, admin, editor, tool) | Full workflow; weight the Ban List, *Forms and destructive actions*, and Product Interface Reference |
+| Anything with data entry, validation, or a destructive action | *Forms and destructive actions* before the component work, not after |
 | Narrow visual fix, restyle, or polish pass | Sections 2, 6, 7, 8 only; never skip rendering verification |
 | "It feels off" / "make it feel better" | Sections 6 and 7, then re-render and compare |
 
@@ -182,6 +183,7 @@ Use these exact numbers. They are the difference between polish and near-polish,
 | Contrast | `4.5:1` normal text, `3:1` large text and UI components |
 | Spacing scale | `4px` or `8px` base — every margin, padding, and gap snaps to it |
 | Disabled | `opacity 0.6`, `cursor: not-allowed`, no hover effect |
+| Busy (request in flight) | label change or in-place progress; **never** only `opacity 0.6`, which is the disabled look |
 | Palette size | 3–5 colors total, plus tints and shades |
 | Type families | 1–2 maximum |
 
@@ -263,14 +265,32 @@ Flip directional icons for RTL — back and forward arrows, navigation chevrons,
 
 **`will-change` sparingly.** It pre-promotes an element to its own GPU layer to avoid a first-frame micro-stutter, and only helps for `transform`, `opacity`, and `filter`. It does nothing for layout or paint properties, it is never `all`, and each extra layer costs memory. Add it only after observing stutter, not preemptively; Safari benefits most. Only `transform` and `opacity` are reliably GPU-compositable — prefer animating those.
 
+### Forms and destructive actions
+
+**Validate on blur, then on change.** An untouched field never shows an error. A field's first error appears when the user leaves it, and from then on it corrects as they type, so the message clears the moment it is fixed. Re-validate everything on submit, move focus to the first invalid field, and bring it into view. Validating on every keystroke from the start shouts at someone who is halfway through typing their own phone number.
+
+**Put each error at its field.** The message sits beside or beneath the input and is programmatically associated with it, so a screen reader announces it with the field. Reserve a summary at the top for long forms or for a submit that reveals several errors at once. Never use a toast for field validation: it is detached from the field, expires on a timer, and is gone by the time the user looks back. The message names the fix ("请输入 11 位手机号"), not the verdict ("格式错误").
+
+**Disable the control that started the request while it is in flight**, and restore it when it settles. This covers save, submit, delete, approve, and cancel alike — not only a form's submit button, and not only the first request on the screen. It is the only guard against a double submit, and on a booking, order, or payment form a missing guard creates two real records rather than one duplicate request. A control in flight must read as *busy*, not as unavailable: the canonical disabled style is `opacity 0.6`, so a button that only dims is indistinguishable from one the user is not allowed to press. Change its label or show progress in place.
+
+**A destructive confirmation names the object and the consequence.** "确定要取消吗？" is a coin flip, not a confirmation; "取消 3 月 14 日 11:00 与张医生的预约？取消后需重新排队" is one. The confirm button repeats the verb ("取消预约"), not "确定". Initial focus and the Enter key both go to the safe action, never to the destructive one, so the dialog cannot be completed by reflex — the destructive control requires a deliberate click. The dismissal control must not reuse the verb being confirmed: when the action *is* a cancellation, a button labelled 取消 is indistinguishable from 取消预约, so label it 返回 or 保留预约.
+
+**Multi-step flows keep their state.** Show which step of how many, let the user go back without retyping anything, never re-ask for a value they already gave, and say what happens on the final step before it happens.
+
+**An empty state explains the cause and offers the next action.** "今日无号" leaves the user stuck; add why, plus the way forward — the next day with availability, a phone number, or a waitlist.
+
+**When a submit loses a race, keep everything the user typed.** Booking, ordering, and reserving all fail this way: the slot, seat, or item was taken between selection and submit. A generic failure that resets the form makes the user re-enter data that was never wrong. Preserve the entered values, name the specific collision ("11:00 与张医生的号刚被约走"), keep the failed choice visible and marked as no longer available, and offer the nearest alternative in the same view.
+
+**A success state says what now exists and what happens next.** It is not a toast. State the created object by identity — number, date, time, who or what it is with — plus the next action and where the user can find or change it later. If the object can be cancelled or edited, that path belongs in the same view rather than in an email the user may never open.
+
 ### Accessibility is the floor, not the ceiling
 
 - **Contrast:** `4.5:1` for normal text, `3:1` for large text (18px+ bold or 24px+) and UI components. Compute real ratios for resolvable pairs. When a borderline case sits at `4.4:1`, fix it anyway.
 - **Never signal by color alone.** Pair with an icon, text, or position. Red and green are the most common colorblindness pairing.
 - **Right element for the role.** `<button>` not `<div onclick>`; `<a href>` not a styled div; `<label for>` linked to its input; landmarks (`nav`, `main`, `article`, `section`, `aside`); exactly one `<h1>` with no skipped levels. ARIA is a patch for when semantic HTML cannot express the role.
-- **Keyboard:** everything clickable is Tab-reachable in logical order; modals close on Escape; menus open with Enter or Space and navigate with arrows; forms submit on Enter.
+- **Keyboard:** everything clickable is Tab-reachable in logical order; modals close on Escape; menus open with Enter or Space and navigate with arrows; forms submit on Enter — except inside a confirmation dialog, where Enter performs the safe action rather than the destructive one.
 - **Focus:** never `outline: none` without a replacement meeting `3:1` against the adjacent background. Prefer `:focus-visible` over `:focus`.
-- **Forms:** placeholder text is not a label; errors are specific ("Email address is invalid," not "Invalid") and tied to the field; required fields are marked with text or an icon, not color alone; use `type` and `autocomplete` for mobile keyboards and autofill.
+- **Forms:** placeholder text is not a label; errors are specific ("Email address is invalid," not "Invalid") and tied to the field; required fields are marked with text or an icon, not color alone; use `type` and `autocomplete` for mobile keyboards and autofill. Validation timing, where an error appears, and what a destructive confirmation must say are all in *Forms and destructive actions* above.
 - **Motion:** wrap animation beyond a couple hundred milliseconds in `prefers-reduced-motion`; the standard guard neutralizes durations rather than deleting the rule, so the static cue survives.
 - Never flash content more than 3 times per second.
 
@@ -384,7 +404,7 @@ For dashboards, inboxes, admin tools, editors, settings, and other repeated-use 
 
 **Resist product-UI templates.** Question a thin top bar plus a centered narrow workspace on a wide screen; every region as a rounded card; pills for navigation, plain metadata, and ordinary buttons; an accent-tinted background behind every active item; tiny icons and labels manufacturing density; empty right-side space from fixed content widths; setup pages that read like raw documentation instead of guided flows; and decorative metrics unrelated to the repeated task. Keep a pattern when the task supports it, not because it is familiar.
 
-**Interaction states.** Every interactive element needs a default, hover, active, focus, disabled, and (where it triggers async work) loading state. Elements that look interactive at rest; hover that shifts color and may add lift — never opacity reduction, which reads as disabled; active feedback that confirms the click registered; disabled that is visibly distinct and explains why when a condition gates it; loading that disables the control to prevent double submission and restores on completion. Skeleton, spinner, or progress indicator for data fetched on render. For long tasks: a determinate bar when the percentage is knowable, a step indicator for multi-stage work, and an honest indeterminate indicator otherwise — never just a spinner. Silent successes and silent failures both feel broken.
+**Interaction states.** Every interactive element needs a default, hover, active, focus, disabled, and (where it triggers async work) loading state. Elements that look interactive at rest; hover that shifts color and may add lift — never opacity reduction, which reads as disabled; active feedback that confirms the click registered; disabled that is visibly distinct and explains why when a condition gates it; loading that reads as busy rather than unavailable, and prevents a second submission (*Forms and destructive actions*). Skeleton, spinner, or progress indicator for data fetched on render. For long tasks: a determinate bar when the percentage is knowable, a step indicator for multi-stage work, and an honest indeterminate indicator otherwise — never just a spinner. Silent successes and silent failures both feel broken.
 
 **Preserve the product contract.** Treat requirements as the source for behavior, scope, and states, and visual direction as a separate decision. Identify missing or contradictory handoff details before implementing. Report a contract deviation rather than quietly omitting a scoped capability.
 

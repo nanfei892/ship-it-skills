@@ -64,6 +64,27 @@ Frontend skill that kills the generic AI look. Names the specific patterns to re
 
 现为：`frontend, ui-design, responsive, accessibility`
 
+**已实测搜索面，这不是"多加几个词"的建议，而是独占位置**（2026-10-20，用 `/v1/packages?q=` 逐个查）：
+
+先确认索引范围：搜索确实同时索引 summary 与 tags —— 用只出现在 summary 里的词（`模板味`、`辨识度`、`消灭`）都能搜到我们。所以下面的 0 结果是真实的市场空白，不是查询无效。
+
+| 搜索词 | 市场现在的结果 | 加上该 tag 后 |
+| --- | --- | --- |
+| `animation` | **0** | 我们是唯一结果 |
+| `css` | **0** | 我们是唯一结果 |
+| `design-system` | **0** | 我们是唯一结果 |
+| `interaction-design` | **0** | 我们是唯一结果 |
+| `visual-review` | **0** | 我们是唯一结果 |
+| `anti-ai-slop` | **0** | 我们是唯一结果 |
+| `react` / `tailwind` / `landing page` / `dashboard` | **0** | 未列入建议 tag（见下） |
+
+已覆盖的词（当前已排第 1）：`frontend`、`ui`、`ui-design`、`design`、`accessibility`、`responsive`、`前端`、`界面`。
+
+**中文词也几乎全空**：`交互`、`样式`、`动效`、`无障碍` 搜索均为 0 结果；`视觉` 有 4 个结果但我们不在其中。
+
+20 个真实搜索词里有 11 个返回 0 结果——整个市场都缺 tags，不只是我们。所以扩 tag 的收益是**在 6 个词上成为唯一结果**，而不只是"多一点曝光面"。
+
+
 **建议扩为**（覆盖新能力带来的检索词，全部是用户在市场上会搜的词）：
 
 ```
