@@ -66,7 +66,7 @@ Before styling, read this list and treat it as binding. These are legitimate for
 4. **SaaS card kit.** Content chopped into identical rounded cards, one border-radius regardless of hierarchy, the same soft grey shadow `rgba(0,0,0,.1)` under each, gradient washes as decoration.
 5. **Template chrome** that appears whatever the subject: a tracked-out ALL-CAPS eyebrow above every heading; meta strings joined with middle dots (`A · B · C`); labels built as `WORD — fragment` with a spaced em dash; tinted near-black (`#0B0B0B`, `#111`) standing in for black; a monospace face for small data labels; a `→` appended to link and button text.
 
-**Formatting defaults to refuse:** accenting a single word or phrase in a headline (one word italic, bold, or recolor); all-caps for labels; unnecessary typographic labels above content; numbered markers (`01 / 02 / 03`) unless the content genuinely is a sequence; `border-radius: 12px` plus `border-left: 4px solid` as the default card; pill-shaped buttons for ordinary actions, everywhere from landing pages to consoles (segmented controls, tags, and toggles are different objects); rainbow or 3+ color gradients; saturated purple-to-pink and orange-to-pink hero gradients; decorative emoji before headlines or list items; pure `#FFFFFF` on pure `#000000`; fonts reached for as silent defaults (Inter, Roboto, Arial, bare system stacks, and the serif-display defaults Georgia, Playfair Display, Fraunces); hand-drawn SVG illustrations of people, scenes, or concepts; off-scale spacing values (`padding: 7px 15px`, `gap: 13px`); invented colors that trace to no token (five slightly different blues in one file).
+**Formatting defaults to refuse:** accenting a single word or phrase in a headline (one word italic, bold, or recolor); all-caps for labels; unnecessary typographic labels above content; a hero assembled from a large number, a small label, supporting statistics, and a gradient accent; numbered markers (`01 / 02 / 03`) unless the content genuinely is a sequence; `border-radius: 12px` plus `border-left: 4px solid` as the default card; pill-shaped buttons for ordinary actions, everywhere from landing pages to consoles (segmented controls, tags, and toggles are different objects); rainbow or 3+ color gradients; saturated purple-to-pink and orange-to-pink hero gradients; decorative emoji before headlines or list items; pure `#FFFFFF` on pure `#000000`; fonts reached for as silent defaults (Inter, Roboto, Arial, bare system stacks, and the serif-display defaults Georgia, Playfair Display, Fraunces); hand-drawn SVG illustrations of people, scenes, or concepts; off-scale spacing values (`padding: 7px 15px`, `gap: 13px`); invented colors that trace to no token (five slightly different blues in one file).
 
 **Motion defaults to refuse:** fade-and-slide-up on every section; hover transitions on every card; `transition: all`; keyframed animations on interactive toggles; motion as the only feedback channel; entrance animation on every keystroke or row hover.
 
@@ -80,12 +80,14 @@ For greenfield work or a substantial redesign, produce two compact candidate dir
 
 Ground the direction in subject matter, not word association. A product named "Echo" does not justify sound waves; a finance product does not automatically justify navy; avoiding purple does not justify beige or amber. The subject's industry, materials, vernacular, and audience are where distinctive choices come from — a toy for 8–11 year olds and a dashboard for financial analysts should not converge.
 
+**Open the first viewport with the most characteristic thing in the subject's world** — a headline, an image, a live value, an actual interaction. A large number with a small label, supporting statistics, and a gradient accent is the default hero, and it says nothing about the subject; reach for it only when it genuinely is the most characteristic thing available.
+
 Define the chosen direction with:
 
 1. **Evidence:** concrete brand, audience, content, domain, or environmental signals.
 2. **Interface premise:** one sentence on how the product should feel and why.
 3. **Design dials:** expressiveness, density, contrast, geometry, motion — described in words, not all maximized.
-4. **Composition:** first-viewport focal point, major regions, alignment logic, space allocation.
+4. **Composition:** first-viewport focal point, major regions, alignment logic, space allocation. Sketch each candidate as a coarse ASCII wireframe before writing CSS — comparing two blocks of text about layout is guesswork, comparing two boxes is not.
 5. **Type and color roles:** hierarchy and function, not just a font name and a hex.
 6. **Distinctive move:** optional, only when it improves recognition or the repeated task.
 7. **Rejection:** the most tempting generic direction and why it is wrong here.
@@ -154,6 +156,8 @@ After the direction survives the rendered checkpoint:
 Preserve the product contract. Do not invent features to make the interface more visually interesting.
 
 Never introduce a second styling system to apply a fix. Identify the project's existing system — Tailwind in a Tailwind project, plain CSS in a CSS project, the established CSS-in-JS approach — and express every change in it.
+
+**Watch selectors that cancel each other.** Class and element selectors of equal specificity resolve by source order, so a `.section` padding rule written later silently overrides a `.cta` margin rule written earlier — and the bug appears as "my spacing does nothing," not as a build error. This bites hardest on the vertical rhythm between sections. Keep one owner per property, or raise specificity deliberately rather than by adding classes until it works.
 
 ### Canonical values
 
@@ -234,7 +238,7 @@ Dark mode collapses to a single ring, because layered depth is invisible on dark
 
 ### Typography craft
 
-**Set a real scale and stay on it.** Arbitrary sizes — `17px`, `23px` in a `16/20/24` system — are the most common rhythm defect. Control measure, line height, weight, and spacing; a font name is not a type system.
+**Set a real scale and stay on it.** Arbitrary sizes — `17px`, `23px` in a `16/20/24` system — are the most common rhythm defect. Control measure, line height, weight, and spacing; a font name is not a type system. A serif body face carries a slightly longer measure than a sans and needs slightly more line-height than a sans at the same size; adjusting one without the other is what makes serif text read as cramped.
 
 **Rendering details, applied once at the root:**
 
@@ -321,7 +325,11 @@ When independent agents or reviewers are available and permitted, give them only
 - **Templated:** recognizable AI defaults dominate composition, palette, type, or content.
 - **Visually unresolved:** competing decisions, weak hierarchy, or major readability problems.
 
-A critical composition failure cannot be canceled by passing contrast checks. Report at most five issues ordered by visual impact; for each, state the visible symptom, why it harms the task or credibility, the concrete design change, and the screenshot needed to verify it. Prefer structural fixes over cosmetic tweaks: "make the detail title the only 24px element, reduce nav emphasis, and remove accent fills from metadata" is stronger than "increase contrast." Render again after meaningful revisions and apply the verdict to the final render.
+A critical composition failure cannot be canceled by passing contrast checks. Prefer structural fixes over cosmetic tweaks: "make the detail title the only 24px element, reduce nav emphasis, and remove accent fills from metadata" is stronger than "increase contrast." Render again after meaningful revisions and apply the verdict to the final render.
+
+**Report the review as a table, and state what you did not inspect.** A prose critique hides both the evidence and the gaps. Start with a coverage table: each review dimension, what you actually inspected for it (which screenshot, viewport, and state), and the result — a finding count, `clear`, or `not reviewed` plus the reason. Never let an uninspected surface read as approved, and never imply that a screenshot you did not open was reviewed. Then list findings, most visible first, capped at five. For each: severity (`high` makes the interface inaccessible, misleading, unreadable, or repeatedly disruptive; `medium` is a noticeable usability or consistency problem; `low` is isolated polish), location, what it looks like now, the concrete replacement, and the principle it violates. Consolidate one systemic issue into a single row naming every affected location, and do not pad the list to reach the cap. Finish with one to three candidates you considered and rejected, and why — invent nothing to fill the space.
+
+**Gate the ship separately from judging the design.** `block` while any high finding stands, `needs changes` when only medium or low findings remain, `approve` only when nothing actionable is left. List every check you did not run beside the gate; an unverified check is not a pass.
 
 ## 8. Verify Function and Visual Quality Separately
 
@@ -384,7 +392,8 @@ Lead with the resulting product direction and what now works. Report:
 2. the representative slice and core workflow completed;
 3. the screenshots and viewports actually inspected, stating the confirmed layout width for any narrow check;
 4. functional checks run separately from visual review;
-5. material contract deviations or remaining limitations.
+5. **what is real and what is simulated** — a request stubbed with a timer, hardcoded records, a flow that only works in one direction, an image that is a placeholder. A prototype that does not declare its fakes reads as finished software, and the person who then ships it discovers the difference;
+6. material contract deviations or remaining limitations.
 
 Keep it concise. State caveats and next steps only — do not narrate routine styling choices or recap work the user just watched, and never claim taste from an automated check.
 
