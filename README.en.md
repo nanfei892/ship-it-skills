@@ -46,7 +46,7 @@ Build, redesign, or review frontend interfaces so they **have a clear product id
 
 - Example trigger: "Make this page feel like a real product, not an AI template"
 - Also for polish work: "this button feels wrong" / "check the hierarchy and spacing"
-- See it in action: [skill-showcase](skill-showcase/README.md) — four deliberately divergent pages, desktop and mobile renders, and the defects that only surfaced by looking at real images and measuring real viewports
+- See it in action: [skill-showcase](skill-showcase/README.md) — five deliberately divergent pages, desktop and mobile renders, a full form-and-states flow, and the defects that only surfaced by looking at real images and measuring real viewports
 
 <table>
 <tr>

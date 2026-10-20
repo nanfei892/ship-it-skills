@@ -1,9 +1,10 @@
 # Skill Showcase — make-ui-not-ai in practice
 
-Four pages built with the rewritten [`make-ui-not-ai`](../make-ui-not-ai/SKILL.md) skill, deliberately
+Five pages built with the rewritten [`make-ui-not-ai`](../make-ui-not-ai/SKILL.md) skill, deliberately
 divergent in style. The first three share one subject — a Chinese food-ordering product (饭点 / 食记) — and
 were built while the skill was being written. The fourth was built by an agent that had never seen this
-directory, working only from `SKILL.md`, and is the strongest evidence here that the skill transfers.
+directory, working only from `SKILL.md`, and is the strongest evidence here that the skill transfers. The
+fifth exercises forms, validation, and every state a booking flow can reach.
 Every page was rendered in a real browser and inspected as images before being accepted.
 
 This directory exists to prove the skill's central claim: **naming specific refusals produces distinct,
