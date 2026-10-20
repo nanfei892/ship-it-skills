@@ -133,16 +133,30 @@ if (-not $SkipRemote) {
             continue
         }
         $url = "https://raw.githubusercontent.com/nanfei892/ship-it-skills/master/$($s.Name)/SKILL.md"
-        try {
-            $live = Normalize (Invoke-WebRequest -Uri $url -Headers @{ 'User-Agent' = $ua0 } -UseBasicParsing).Content
+        $live = $null
+        $status = $null
+        for ($attempt = 1; $attempt -le 2 -and $null -eq $live; $attempt++) {
+            try {
+                $live = Normalize (Invoke-WebRequest -Uri $url -Headers @{ 'User-Agent' = $ua0 } -UseBasicParsing).Content
+            } catch {
+                $resp = $_.Exception.Response
+                $status = if ($resp) { [int]$resp.StatusCode } else { $null }
+                if ($attempt -lt 2) { Start-Sleep -Milliseconds 700 }
+            }
+        }
+        if ($null -eq $live) {
+            if ($status -eq 404) {
+                Bad "$($s.Name): install source returns 404 - the registered URL no longer exists"
+            } else {
+                Warn "$($s.Name): could not verify the install source (network, not a repo defect) - re-run to confirm"
+            }
+        } else {
             $mineTxt = Normalize (Get-Content -LiteralPath (Join-Path $s.FullName 'SKILL.md') -Raw)
             if ((ShaOf $live) -eq (ShaOf $mineTxt)) {
                 Ok "$($s.Name): install source matches this repo"
             } else {
                 Warn "$($s.Name): install source differs from this repo ($($live.Length) vs $($mineTxt.Length) chars) - the registry may be serving a stale copy"
             }
-        } catch {
-            Bad "$($s.Name): install source unreachable ($url)"
         }
     }
 
@@ -197,7 +211,11 @@ if (-not $SkipRemote) {
             $headLocal = git rev-parse HEAD
             $headRemote = git ls-remote origin master 2>$null | ForEach-Object { $_.Split("`t")[0] }
             if ($headLocal -eq $headRemote) {
-                Warn "install source is serving an older blob ($($live.Length) vs $(& $norm $mine).Length chars) but HEAD is pushed ($($headLocal.Substring(0,7))) - raw.githubusercontent CDN lag; re-run in a few minutes"
+                # NOTE: member access must be inside the subexpression; "$(expr).Length"
+                # would print the whole value followed by the literal text ".Length".
+                $liveLen = (& $norm $live).Length
+                $mineLen = (& $norm $mine).Length
+                Warn "install source is serving an older blob ($liveLen vs $mineLen chars) but HEAD is pushed ($($headLocal.Substring(0,7))) - raw.githubusercontent CDN lag; re-run in a few minutes"
             } else {
                 Bad "install source differs from the local file and HEAD is not pushed (local $($headLocal.Substring(0,7)) vs remote $(if($headRemote){$headRemote.Substring(0,7)}else{'unknown'}))"
             }
